@@ -35,6 +35,7 @@ def logout_manager(request):
 @login_required(login_url="/manager/login")
 def add(request):
     if request.method == 'GET':
+        print(request.user)
         return render(request, 'manager/add.html')
 
 @login_required(login_url="/manager/login")
