@@ -1,6 +1,7 @@
 let timer = 0;
 let online = false;
 let ws = null;
+
 $(document).ready(function() {
     $("#control_btn").on("click", function() {
         if(online === false) {
@@ -15,8 +16,8 @@ $(document).ready(function() {
             $("#timer").text("停止了");
         }
     });
-    
 });
+
 
 function get_time() {
     jQuery.ajax({
@@ -29,6 +30,7 @@ function get_time() {
         }
     });
 }
+
 function openws() {
     ws = new WebSocket('ws://' + window.location.host + '/ws/tuisong/');
 
