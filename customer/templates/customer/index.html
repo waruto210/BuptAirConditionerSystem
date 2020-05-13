@@ -1,27 +1,101 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-05-13 19:04:23
+ * @LastEditTime: 2020-05-14 00:26:23
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /django-air/customer/templates/customer/index.html
+ -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/bootstrap.min.js"></script>  
+    <link rel="stylesheet" href="/static/css/fonts.css" />
     
+
     {% load static %}
     <script src="{% static 'customer/action.js' %}"></script>
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>空调管理系统</title>
+
+    <style type="text/css">
+        .show_cost
+        {
+        position:relative;
+        left:450px;
+        bottom: -100px;
+        }
+        </style>
 </head>
-
 <body>
+    <div class="container" style="max-width: 200rem;height:30px">
+         <!--  <nav class="navbar navbar-light bg-light">
+             <a class="navbar-brand" href="#">空调控制面板</a>-->
+     </div> 
+     <div class="container"> 
+         <!-- Content here -->
+         <div class="room">
+         <button type="button" class="btn btn-success" style="right: 600px;">房间号</button></div>
+         <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
+             <div class="card-body" position:relative>
+               <h5 class="card-title">空调面板</h5>
+               <div class="row">
+                 <div class="col-sm-6">
+                    <span style="font-size:30px">模式</span> 
+                   <img id="pic_mode" src="/static/images/snow.png" alt="..." class="img-rounded"width="150" height="150">
+                 </div>
+                 <div class="col-sm-6">
+                    <span style="font-size:30px">目标温度</span> </span><span id = "temp" style="font-size:70px;">15</span>
+                    <span style="font-size:70px;">℃</span>
+                   <span class="glyphicon glyphicon-cloud">
+                 </div>
+               </div>
+               
+               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
 
-    <div class="container">
-        <nav class="navbar navbar-light bg-light">
-            <a class="navbar-brand" href="#">空调控制面板</a>
-        </nav>
-    </div>
-    {% block content %}
-    {% endblock content %}
-</body>
+               <div class="row">
+                <div class="col-sm-6">
+                   <span style="font-size:30px">风速  </span> <span> &nbsp;</span>
+                  <img src="/static/images/speed.png" alt="..." class="img-rounded"width="30" height="30">
+                  <span id = "speed" style="font-size:70px;">中风</span>
+                </div>
+                <div class="col-sm-6">
+                   <span style="font-size:30px">室内温度</span></span><span id = "current_temp" style="font-size:70px;">25</span>
+                   <span style="font-size:70px;">℃</span>
+                </div>
+              </div>
+              <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
+              <div class="show_cost"><h1>总费用：30元</h1></div>
+        
+        
+             </div>
+         </div>  
+
+         <div class="card text-white bg-info mb-3" style="max-width: 900px;height:40px;margin-left: 120px;">
+
+             <div class="btn-group" role="group" >
+                 <button type="button" class="btn btn-secondary btn-info"><span class="glyphicon glyphicon-off"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id =mode_btn ><span class="glyphicon glyphicon-cog"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id = spd_btn><span class="glyphicon glyphicon-cloud"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id =temp_add_btn><span class="glyphicon glyphicon-triangle-top"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id =temp_minus_btn><span class="glyphicon glyphicon-triangle-bottom"></span></button>
+                 
+             </div>
+         </div>
+         
+     </div>     
+     </div>
+     
+     <ul class="nav nav-list"><li class="divider" style="background-color: black;height:10px;"></li></ul>
+      
+     {% block content %}
+     {% endblock content %}
+ 
+ </body>
 </html> 

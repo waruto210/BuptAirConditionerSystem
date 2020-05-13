@@ -1,6 +1,9 @@
 let timer = 0;
 let online = false;
 let ws = null;
+let goal_temp;
+let sp_mode = 0;
+let total_cost = 0;
 
 $(document).ready(function() {
     $("#control_btn").on("click", function() {
@@ -15,6 +18,43 @@ $(document).ready(function() {
             closews();
             $("#timer").text("停止了");
         }
+    });
+
+    $("#mode_btn").on("click", function() {
+        var img = document.getElementById("pic_mode").src;
+            console.log(img);
+        if(img=="http://127.0.0.1:8000/static/images/snow.png"){
+            $("#pic_mode").attr("src", "http://127.0.0.1:8000/static/images/sun.png");
+            console.log(document.getElementById("pic_mode").src);
+        }else if(img=="http://127.0.0.1:8000/static/images/sun.png"){
+            $("#pic_mode").attr("src", "http://127.0.0.1:8000/static/images/snow.png");
+            console.log(document.getElementById("pic_mode").src);
+        }
+    });
+
+    $("#temp_add_btn").on("click", function() {
+        goal_temp = parseInt(document.getElementById("temp").innerText)+1;
+        document.getElementById("temp").innerHTML = goal_temp;
+    });
+
+    $("#temp_minus_btn").on("click", function() {
+        goal_temp = document.getElementById("temp").innerText -1;
+        document.getElementById("temp").innerHTML = goal_temp;
+    });
+
+
+    $("#spd_btn").on("click", function() {
+        if(sp_mode==0){
+            $("#speed").text("中风");
+            sp_mode++;
+        }else if(sp_mode==1){
+            $("#speed").text("高风");
+            sp_mode++;
+        }else {
+            $("#speed").text("低风");
+            sp_mode=0;
+        }
+        
     });
 });
 
