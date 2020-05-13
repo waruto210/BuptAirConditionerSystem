@@ -6,10 +6,6 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 
-@login_required(login_url="/login")
-def logout_manager(request):
-    auth.logout(request)
-    return redirect("/login")
 
 @login_required(login_url="/login")
 def add(request):

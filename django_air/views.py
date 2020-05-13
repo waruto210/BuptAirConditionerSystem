@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse
 import time
 from django.contrib import auth
+from django.contrib.auth.decorators import login_required
 
 def login(request):
     if request.method == 'GET':
@@ -20,4 +21,9 @@ def login(request):
                 elif user.user_type == 3:
                     return render(request, 'director/index.html', {'user': user})
     return HttpResponse(request, 'request error')
+
+@login_required(login_url="/login")
+def logout(request):
+    auth.logout(request)
+    return redirect("/login")
                      
