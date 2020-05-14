@@ -6,8 +6,8 @@ class MainMachine:
         self.wait_list = []
         self.run_list = []
         self.lock = threading.RLock()
-        self.goal_temp = 25
-        self.env_temp = 20
+        self.goal_temp = 24
+        self.env_temp = 25
 
     def get_list(self):
         self.lock.acquire()
