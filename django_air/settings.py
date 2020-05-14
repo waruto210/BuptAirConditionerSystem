@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'customer',
     'adm',
     'director',
+    'master',
 ]
 
 MIDDLEWARE = [

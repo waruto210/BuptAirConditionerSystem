@@ -51,7 +51,7 @@
                    <img id="pic_mode" src="/static/images/snow.png" alt="..." class="img-rounded"width="150" height="150">
                  </div>
                  <div class="col-sm-6">
-                    <span style="font-size:30px">目标温度</span> </span><span id = "temp" style="font-size:70px;">15</span>
+                    <span style="font-size:30px">目标温度</span> </span><span id = "temp" style="font-size:70px;">{{ goal_temp }}</span>
                     <span style="font-size:70px;">℃</span>
                    <span class="glyphicon glyphicon-cloud">
                  </div>
@@ -62,16 +62,16 @@
                <div class="row">
                 <div class="col-sm-6">
                    <span style="font-size:30px">风速  </span> <span> &nbsp;</span>
-                  <img src="/static/images/speed.png" alt="..." class="img-rounded"width="30" height="30">
+                  <img src="{% static 'images/speed.png' %}" alt="..." class="img-rounded"width="30" height="30">
                   <span id = "speed" style="font-size:70px;">中风</span>
                 </div>
                 <div class="col-sm-6">
-                   <span style="font-size:30px">室内温度</span></span><span id = "current_temp" style="font-size:70px;">25</span>
+                   <span style="font-size:30px">室内温度</span></span><span id = "current_temp" style="font-size:70px;">{{ env_temp }}</span>
                    <span style="font-size:70px;">℃</span>
                 </div>
               </div>
               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
-              <div class="show_cost"><h1>总费用：30元</h1></div>
+              <div class="show_cost"><h1><span>总费用:</span><span id="total_cost">0</span></h1> </div>
         
         
              </div>
@@ -80,11 +80,11 @@
          <div class="card text-white bg-info mb-3" style="max-width: 900px;height:40px;margin-left: 120px;">
 
              <div class="btn-group" role="group" >
-                 <button type="button" class="btn btn-secondary btn-info"><span class="glyphicon glyphicon-off"></span></button>
-                 <button type="button" class="btn btn-secondary btn-info" id =mode_btn ><span class="glyphicon glyphicon-cog"></span></button>
-                 <button type="button" class="btn btn-secondary btn-info" id = spd_btn><span class="glyphicon glyphicon-cloud"></span></button>
-                 <button type="button" class="btn btn-secondary btn-info" id =temp_add_btn><span class="glyphicon glyphicon-triangle-top"></span></button>
-                 <button type="button" class="btn btn-secondary btn-info" id =temp_minus_btn><span class="glyphicon glyphicon-triangle-bottom"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id="power_btn"><span class="glyphicon glyphicon-off"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id ="mode_btn" ><span class="glyphicon glyphicon-cog"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id = "spd_btn"><span class="glyphicon glyphicon-cloud"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id ="temp_add_btn"><span class="glyphicon glyphicon-triangle-top"></span></button>
+                 <button type="button" class="btn btn-secondary btn-info" id ="temp_minus_btn"><span class="glyphicon glyphicon-triangle-bottom"></span></button>
                  
              </div>
          </div>
