@@ -21,14 +21,17 @@ $(document).ready(function() {
     });
 
     $("#mode_btn").on("click", function() {
-        var img = document.getElementById("pic_mode").src;
-            console.log(img);
-        if(img=="http://127.0.0.1:8000/static/images/snow.png"){
-            $("#pic_mode").attr("src", "http://127.0.0.1:8000/static/images/sun.png");
-            console.log(document.getElementById("pic_mode").src);
-        }else if(img=="http://127.0.0.1:8000/static/images/sun.png"){
-            $("#pic_mode").attr("src", "http://127.0.0.1:8000/static/images/snow.png");
-            console.log(document.getElementById("pic_mode").src);
+        let img = document.getElementById("pic_mode").src;
+        let tmp = img.split('/')
+        
+        if(tmp[tmp.length - 1] === "snow.png"){
+            tmp[tmp.length - 1] = "sun.png"
+            $("#pic_mode").attr("src", tmp.join("/"));
+            // console.log(document.getElementById("pic_mode").src);
+        }else {
+            tmp[tmp.length - 1] = "snow.png"
+            $("#pic_mode").attr("src", tmp.join("/"));
+            // console.log(document.getElementById("pic_mode").src);
         }
     });
 
