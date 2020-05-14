@@ -5,11 +5,16 @@ from datetime import datetime
 import time
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from master.main_machine import machine
 # Create your views here.
 
 def customer(request):
     if request.method == 'GET':
-        return render(request, "customer/control.html")
+        goal_temp, env_temp = machine.get_temp()
+        if goal_temp != None and env_temp != None:
+            return render(request, "customer/control.html", {'goal_temp': goal_temp, 'env_temp': env_temp})
+        else:
+            return HttpResponse("中央空调未开机")
 
 
 def push(msg):
