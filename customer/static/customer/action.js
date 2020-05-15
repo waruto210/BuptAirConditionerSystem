@@ -51,7 +51,6 @@ $(document).ready(function() {
             is_work = false;
         }
         if( power_on == true ) {
-            poll()
             last_cost_time = Date.parse(new Date()) / 1000;
             // console.log('time:', last_cost_time);
             timer = setInterval(poll, 5*1000);
@@ -161,9 +160,6 @@ function clear_rate() {
     temp_high = temp_mid;
 }
 
-function power_set() {
-
-}
 
 function cal_cost() {
     now_time = Date.parse(new Date()) / 1000;
@@ -204,8 +200,10 @@ function cal_cost() {
         } else {
             new_temp = Math.min(curr_temp + (gap / 60) * temp_off, env_temp);
         }
-        curr_temp = new_temp;
-        $("#curr_temp").text(curr_temp.toFixed(2));
+        if (curr_temp != new_temp) {
+            curr_temp = new_temp;
+            $("#curr_temp").text(curr_temp.toFixed(2));
+        }
     }
     last_cost_time = now_time;
 }
