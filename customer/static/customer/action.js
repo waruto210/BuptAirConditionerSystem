@@ -13,7 +13,7 @@ let goal_temp;
 // 工作模式
 let word_mode = "cold";
 // 风速模式
-let sp_mode = 0;
+let sp_mode = 1;
 // 总费用
 let total_cost = 0;
 
@@ -22,44 +22,57 @@ let hot_sub = 25, hot_sup = 30;
 let cold_sub = 18, cold_sup = 25;
 
 $(document).ready(function() {
-    // $("#control_btn").on("click", function() {
-    //     if(online === false) {
-    //         online = true;
-    //         get_time();
-    //         openws();
-    //         timer = setInterval(get_time, 5 * 1000);
-    //     } else {
-    //         online = false;
-    //         clearInterval(timer);
-    //         closews();
-    //         $("#timer").text("停止了");
-    //     }
-    // });
+
 
     $("#power_btn").on("click", power_set)
 
-    // $("#mode_btn").on("click", change_workmode);
+    $("#mode_btn").on("click", function(){
+        let img = $("#pic_mode").attr("src");
+        console.log(img)
+        let tmp = img.split('/')
+        
+        if(tmp[tmp.length - 1] === "snow.png"){
+            if (goal_temp < hot_sub) {
+                alert("目标温度过低，无法切换模式");
+            } else {
+                tmp[tmp.length - 1] = "sun.png"
+                $("#pic_mode").attr("src", tmp.join("/"));
+                word_mode = "hot";
+            }
+            // console.log(document.getElementById("pic_mode").src);
+        } else {
+            if(goal_temp > cold_sup) {
+                alert("目标温度过高，无法切换模式");
+            } else {
+                tmp[tmp.length - 1] = "snow.png"
+                $("#pic_mode").attr("src", tmp.join("/"));
+                word_mode = "cold";
+            }
+            // console.log(document.getElementById("pic_mode").src);
+        }
+    });
 
     $("#temp_add_btn").on("click", function() {
         goal_temp = parseInt($("#temp").text()) + 1;
-        if(goal_temp > hot_sup) {
-            alert("已经达到最大温度");
-            return;
-        } else if(goal_temp == cold_sup + 1) {
-            change_workmode();
+        if(word_mode=="hot" && goal_temp > hot_sup) {
+            alert("已经达到制热模式最大温度");
+        } else if(word_mode=="cold" && goal_temp > cold_sup) {
+            alert("已经达到制冷模式最大温度，请切换到制热模式");
+        } else {
+            $("#temp").text(goal_temp);
         }
-        $("#temp").text(goal_temp);
     });
 
     $("#temp_minus_btn").on("click", function() {
         goal_temp = parseInt($("#temp").text()) - 1;
-        if(goal_temp < cold_sub) {
-            alert("已经达到最低温度");
+        if(word_mode=="cold" && goal_temp < cold_sub) {
+            alert("已经达到制冷模式最低温度");
             return;
-        } else if(goal_temp == cold_sup) {
-            change_workmode();
+        } else if(word_mode=="hot" && goal_temp == cold_sup) {
+            alert("已经达到制热模式最低温度，请切换到制冷模式");
+        } else {
+            $("#temp").text(goal_temp);
         }
-        $("#temp").text(goal_temp);
     });
 
 
@@ -95,23 +108,6 @@ function poll() {
     console.log("该轮询了");
 }
 
-function change_workmode() {
-    let img = $("#pic_mode").attr("src");
-    console.log(img)
-    let tmp = img.split('/')
-    
-    if(tmp[tmp.length - 1] === "snow.png"){
-        tmp[tmp.length - 1] = "sun.png"
-        $("#pic_mode").attr("src", tmp.join("/"));
-        word_mode = "hot";
-        // console.log(document.getElementById("pic_mode").src);
-    }else {
-        tmp[tmp.length - 1] = "snow.png"
-        $("#pic_mode").attr("src", tmp.join("/"));
-        word_mode = "cold";
-        // console.log(document.getElementById("pic_mode").src);
-    }
-}
 
 function get_time() {
     jQuery.ajax({

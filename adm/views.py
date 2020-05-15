@@ -7,10 +7,9 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def set_temp(request):
     if request.method == 'POST':
-        goal_temp = request.POST.get('goal_temp', None)
         env_temp = request.POST.get('env_temp', None)
-        if goal_temp != None and env_temp != None:
-            machine.set_temp(goal_temp, env_temp)
+        if env_temp != None:
+            machine.set_temp(env_temp)
             return JsonResponse({'result': 'ok', 'msg': 'ok'})
         else:
             return JsonResponse({'result': 'err', 'msg': 'para erros'})
