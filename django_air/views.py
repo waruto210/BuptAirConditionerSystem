@@ -3,6 +3,7 @@ import time
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 
+
 def login(request):
     if request.method == 'GET':
         return render(request, "login.html")
@@ -10,7 +11,7 @@ def login(request):
         email = request.POST.get('email', None)
         password = request.POST.get('password', None)
         print(email, password)
-        if email != None and password != None:
+        if email is not None and password is not None:
             user = auth.authenticate(username=email, password=password)
             auth.login(request, user)
             if user:
@@ -22,8 +23,8 @@ def login(request):
                     return render(request, 'director/index.html', {'user': user})
     return HttpResponse(request, 'request error')
 
+
 @login_required(login_url="/login")
 def logout(request):
     auth.logout(request)
     return redirect("/login")
-                     

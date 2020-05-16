@@ -58,6 +58,8 @@ $(document).ready(function() {
             clearInterval(timer);
             clear_rate();
             curr_temp = env_temp;
+            $("#curr_temp").text(curr_temp.toFixed(2));
+            $("#air_state").text("未开机");
         }   
     });
 
@@ -232,6 +234,9 @@ function post_poll(ins) {
         console.log(data)
         if(is_work == false) {
             clear_rate();
+            $("#air_state").text("中央主机暂未送风");
+        } else {
+            $("#air_state").text("空调工作中");
         }
     })
 }
