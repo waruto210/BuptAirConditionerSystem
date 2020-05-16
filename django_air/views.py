@@ -12,7 +12,7 @@ def login(request):
         print(email, password)
         if email != None and password != None:
             user = auth.authenticate(username=email, password=password)
-            print(user)
+            auth.login(request, user)
             if user:
                 if user.user_type == 1:
                     return render(request, 'manager/index.html', {'user': user})
