@@ -47,14 +47,17 @@
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
              <div class="card-body" position:relative>
                <h5 class="card-title">空调面板</h5>
+                <div class="row">
+                    <h6 id="air_state"> 未开机</h6>
+               </div>
                <div class="row">
                  <div class="col-sm-6">
                     <span style="font-size:30px">模式</span> 
                    <img id="pic_mode" src="/static/images/snow.png" alt="..." class="img-rounded"width="150" height="150">
                  </div>
                  <div class="col-sm-6">
-                    <span style="font-size:30px">目标温度</span> </span><span id = "temp" style="font-size:70px;">25</span>
-                    <span style="font-size:70px;">℃</span>
+                    <span style="font-size:30px">目标温度</span> </span><span id = "goal_temp" style="font-size:50px;"> 25 </span>
+                    <span style="font-size:50px;">℃</span>
                    <span class="glyphicon glyphicon-cloud">
                  </div>
                </div>
@@ -68,8 +71,9 @@
                   <span id = "speed" style="font-size:70px;">中风</span>
                 </div>
                 <div class="col-sm-6">
-                   <span style="font-size:30px">室内温度</span></span><span id = "current_temp" style="font-size:70px;">{{ env_temp }}</span>
-                   <span style="font-size:70px;">℃</span>
+                   <span style="font-size:30px">室内温度</span></span><span id = "curr_temp" style="font-size:50px;"> {{ env_temp }} </span>
+                   <span style="font-size:50px;">℃</span>
+                   <span class="glyphicon glyphicon-cloud">
                 </div>
               </div>
               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
