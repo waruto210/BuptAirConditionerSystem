@@ -16,7 +16,8 @@ def login(request):
             auth.login(request, user)
             if user:
                 if user.user_type == 1:
-                    return render(request, 'manager/index.html', {'user': user})
+                    # return render(request, 'manager/index.html', {'user': user})
+                    return redirect("manager/index")
                 elif user.user_type == 2:
                     return render(request, 'adm/index.html', {'user': user})
                 elif user.user_type == 3:
