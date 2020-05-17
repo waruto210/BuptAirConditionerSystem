@@ -3,7 +3,6 @@ let ws = null;
 let POWER_ON = "power_on", POWER_OFF = "power_off", CHANGE_SP = "change_sp", CHANGE_MODE = "change_mode", CHANGE_GOAL = "change_goal";
 let HEART_BEAT = "heart_beat";
 
-let total_high_time = 0, total_mid_time = 0, total_low_time = 0;
 
 let cost_low = 1 / 3, cost_mid = 1 / 2, cost_high = 1;
 let temp_low = 2, temp_mid = 2, temp_high = 2;
@@ -11,7 +10,10 @@ let temp_low = 2, temp_mid = 2, temp_high = 2;
 let temp_off = 2;
 // 上一次计算费用，温度变化的时间
 let last_cost_time = 0;
+let pre_sp = 0;
 
+let is_temp_change_timer = false;
+let is_spmode_change_timer = false;
 let is_rate_timer = false;
 let rate_timer = null;
 // 轮询定时器
@@ -30,6 +32,7 @@ let work_mode = 0;
 let sp_mode = 1;
 // 总费用
 let total_cost = 0;
+let delta_cost = 0;
 
 let room_id = null;
 // 目标温度上下限
@@ -53,26 +56,31 @@ $(document).ready(function() {
 
     $("#power_btn").on("click", function() {     
         if(power_on === false) {
-            power_on = true;
             $("#mode_btn").attr("disabled", false);
             $("#spd_btn").attr("disabled", false);
             $("#temp_add_btn").attr("disabled", false);
             $("#temp_minus_btn").attr("disabled", false);
-            post_power()
+            post_power_on();
+            // 应该改为post_power修改
         } else {
-            power_on = false;
-            is_work = false;
+            post_power_off();
         }
         if( power_on == true ) {
             last_cost_time = Date.parse(new Date()) / 1000;
-            // console.log('time:', last_cost_time);
             timer = setInterval(poll, 5*1000);
         } else {
             clearInterval(timer);
-            clear_rate();
+            if(is_rate_timer) {
+                clear_rate();
+            }
             curr_temp = env_temp;
-            $("#curr_temp").text(curr_temp.toFixed(2));
+            $("#curr_temp").text(curr_temp);
             $("#air_state").text("未开机");
+
+            $("#mode_btn").attr("disabled", true);
+            $("#spd_btn").attr("disabled", true);
+            $("#temp_add_btn").attr("disabled", true);
+            $("#temp_minus_btn").attr("disabled", true);
         }   
     });
 
@@ -88,6 +96,7 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "sun.png"
                 $("#pic_mode").attr("src", tmp.join("/"));
                 work_mode = 1;
+                post_poll(CHANGE_MODE);
             }
             // console.log(document.getElementById("pic_mode").src);
         } else {
@@ -97,10 +106,10 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "snow.png"
                 $("#pic_mode").attr("src", tmp.join("/"));
                 work_mode = 0;
+                post_poll(CHANGE_MODE);
             }
-            // console.log(document.getElementById("pic_mode").src);
         }
-        post_poll(CHANGE_MODE);
+
     });
 
     $("#temp_add_btn").on("click", function() {
@@ -109,12 +118,18 @@ $(document).ready(function() {
             goal_temp = hot_sup;
             alert("已经达到制热模式最大温度");
         } else if(work_mode == 0 && goal_temp > cold_sup) {
-            alert("已经达到制冷模式最大温度，请切换到制热模式");
             goal_temp = cold_sup;
+            alert("已经达到制冷模式最大温度，请切换到制热模式");
         } else {
             $("#goal_temp").text(goal_temp);
+            if(is_temp_change_timer == false) {
+                is_temp_change_timer = true;
+                setTimeout(function () {
+                    is_temp_change_timer = false;
+                    post_poll(CHANGE_GOAL);
+                }, 1000);
+            }
         }
-        post_poll(CHANGE_GOAL);
     });
 
     $("#temp_minus_btn").on("click", function() {
@@ -127,8 +142,14 @@ $(document).ready(function() {
             alert("已经达到制热模式最低温度，请切换到制冷模式");
         } else {
             $("#goal_temp").text(goal_temp);
+            if(is_temp_change_timer == false) {
+                is_temp_change_timer = true;
+                setTimeout(function () {
+                    is_temp_change_timer = false;
+                    post_poll(CHANGE_GOAL);
+                }, 1000);
+            }
         }
-        post_poll(CHANGE_GOAL);
     });
 
 
@@ -136,24 +157,33 @@ $(document).ready(function() {
         if(sp_mode == 0){
             $("#speed").text("中风");
             cal_cost();
+            pre_sp = sp_mode;
             sp_mode++;
             clear_rate();
         }else if(sp_mode == 1){
             $("#speed").text("高风");
             cal_cost();
+            pre_sp = sp_mode;
             sp_mode++;
             is_rate_timer = true;
             rate_timer = setInterval(change_rate, 10*1000);
         } else {
             $("#speed").text("低风");
             cal_cost();
+            pre_sp = sp_mode;
             sp_mode = 0;
             clear_rate();
             is_rate_timer = true;
             rate_timer = setInterval(change_rate, 10*1000);
             temp_high = temp_mid;
         }
-        post_poll(CHANGE_SP);
+        if(is_spmode_change_timer == false) {
+            is_spmode_change_timer = true;
+            setTimeout(function () {
+                is_spmode_change_timer = false;
+                post_poll(CHANGE_SP);
+            }, 1000);
+        }
     });
 });
 
@@ -170,7 +200,6 @@ function change_rate() {
 }
 
 function clear_rate() {
-    console.log("clear_timer");
     is_rate_timer = false;
     clearInterval(rate_timer);
     temp_low = temp_mid;
@@ -185,21 +214,24 @@ function cal_cost() {
         // 计算温度变化
         new_temp = 0;
         if(sp_mode == 0) {
-            total_cost += (gap / 60) * cost_low;
+            delta_cost = (gap / 60) * cost_low;
+            total_cost += delta_cost;
             if(goal_temp > curr_temp) {
                 new_temp = Math.min(curr_temp + (gap / 60) * temp_low, goal_temp);
             } else {
                 new_temp = Math.max(curr_temp - (gap / 60) * temp_low, goal_temp);
             }
         } else if(sp_mode == 1) {
-            total_cost += (gap / 60) * cost_mid;
+            delta_cost = (gap / 60) * cost_mid;
+            total_cost += delta_cost;
             if(goal_temp > curr_temp) {
                 new_temp = Math.min(curr_temp + (gap / 60) * temp_mid, goal_temp);
             } else {
                 new_temp = Math.max(curr_temp - (gap / 60) * temp_mid, goal_temp);
             }
         } else {
-            total_cost += (gap / 60) * cost_high;
+            delta_cost = (gap / 60) * cost_high;
+            total_cost += delta_cost;
             if(goal_temp > curr_temp) {
                 new_temp = Math.min(curr_temp + (gap / 60) * temp_high, goal_temp);
             } else {
@@ -218,6 +250,7 @@ function cal_cost() {
             new_temp = Math.min(curr_temp + (gap / 60) * temp_off, env_temp);
         }
         if (curr_temp != new_temp) {
+            console.log("not eq");
             curr_temp = new_temp;
             $("#curr_temp").text(curr_temp.toFixed(2));
         }
@@ -231,8 +264,10 @@ function poll() {
     post_poll(HEART_BEAT);
 }
 function post_poll(ins) {
+    console.log("poll:", ins);
     obj = {
         'url': 'poll',
+        'async': true,
         'data': {
             'room_id': room_id,
             'ins': ins,
@@ -241,6 +276,8 @@ function post_poll(ins) {
             'sp_mode': sp_mode,
             'work_mode': work_mode,
             'total_cost': total_cost,
+            'delta_cost': delta_cost,
+            'pre_sp': pre_sp,
         },
     }
     myajax(obj, function(data) {
@@ -260,9 +297,33 @@ function post_poll(ins) {
         }
     })
 }
-function post_power() {
+
+function post_power_off() {
     obj = {
-        'url': 'poweron',
+        'url': 'power',
+        'async': false,
+        'data': {
+            'room_id': room_id,
+            'ins': POWER_OFF,
+            'goal_temp': goal_temp,
+            'curr_temp': curr_temp,
+            'sp_mode': sp_mode,
+            'work_mode': work_mode,
+            'total_cost': total_cost,
+        },
+    }
+    myajax(obj, function(data) {
+        power_on = false;
+        is_work = false;
+        if(is_rate_timer) {
+            clearInterval(is_rate_timer);
+        }
+    })
+}
+function post_power_on() {
+    obj = {
+        'url': 'power',
+        'async': false,
         'data': {
             'room_id': room_id,
             'ins': POWER_ON,
@@ -275,13 +336,19 @@ function post_power() {
     }
     myajax(obj, function(data) {
         console.log(data)
+        if(data.is_on == false) {
+            power_on = false;
+            return
+        } else {
+            power_on = true;
+        }
         is_work = data.is_work
         if(is_work == false) {
             $("#air_state").text("中央主机暂未送风");
         } else {
             $("#air_state").text("空调工作中");
         }
-    })
+    });
 }
 
 
@@ -289,6 +356,7 @@ myajax = function(obj, successFn){
     $.ajax({
         url: obj.url,
         data: obj.data,
+        async: obj.async,
         dataType: 'json',
         type: 'POST',
         success: function(data){
@@ -299,7 +367,7 @@ myajax = function(obj, successFn){
             }
         },
         error: function(err){
-            alert(err)
+            alert(data)
         }
     })
 }

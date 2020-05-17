@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import Customer, State
+from .models import Customer, State, Ticket, StatisicDay
 from datetime import datetime
 import time
 from channels.layers import get_channel_layer
@@ -10,6 +10,8 @@ import math
 from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from master.main_machine import machine
+from datetime import datetime
+import uuid
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), 'default')
@@ -28,17 +30,16 @@ def bg_job():
     finally:
         machine.lock.release()
 
-
 register_events(scheduler)
 scheduler.start()
 
 
-
 @csrf_exempt
-def poweron(request):
+def power(request):
     ret = {
         'code': 200,
         'msg': 'ok',
+        'data': {}
     }
     data = {}
     if request.method == 'POST':
@@ -46,17 +47,38 @@ def poweron(request):
         ins = request.POST.get('ins', None)
         goal_temp = float(request.POST.get('goal_temp', None))
         curr_temp = float(request.POST.get('curr_temp', None))
-        sp_mode = request.POST.get('sp_mode', None)
-        work_mode = request.POST.get('work_mode', None)
-        total_cost = request.POST.get('total_cost', None)
-        
+        sp_mode = int(request.POST.get('sp_mode', None))
+        work_mode = int(request.POST.get('work_mode', None))
+        total_cost = float(request.POST.get('total_cost', None))
+
+        # 确认是否登记入住了
+        # try:
+        #     Customer.objects.get(RoomId=room_id)
+        # except Exception:
+        #     print("here")
+        #     ret['code'] = 1001
+        #     ret['msg'] = "当前房间未登记入住"
+        #     return JsonResponse(ret)
+
         state, flag = State.objects.get_or_create(room_id=room_id)
         state.goal_temp = goal_temp
         state.curr_temp = curr_temp
         state.sp_mode = sp_mode
         state.work_mode = work_mode
         state.total_cost = total_cost
-        state.save()
+
+        if ins == 'power_on':
+            state.is_on = True
+        else:
+            state.is_on = False
+            state.is_work = False
+            state.save()
+            machine.lock.acquire()
+            try:
+                machine.delete_slave(room_id=room_id)
+            finally:
+                machine.lock.release()
+            return JsonResponse(ret)
 
         if math.isclose(curr_temp, goal_temp):
             is_pause = 1
@@ -71,6 +93,11 @@ def poweron(request):
             data['is_work'] = machine.get_is_work(room_id=room_id)
         finally:
             machine.lock.release()
+        state.is_work = data['is_work']
+        state.save()
+        # 创建新的详单
+
+        data['is_on'] = True
         ret['data'] = data
         return JsonResponse(ret)
 
@@ -90,7 +117,8 @@ def poll(request):
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = request.POST.get('work_mode', None)
         total_cost = request.POST.get('total_cost', None)
-        
+        delta_cost = float(request.POST.get('delta_cost', None))
+
         state = State.objects.get(room_id=room_id)
 
         state.goal_temp = goal_temp
@@ -98,8 +126,9 @@ def poll(request):
         state.sp_mode = sp_mode
         state.work_mode = work_mode
         state.total_cost = total_cost
-        state.save()
-       
+
+        # 统计信息
+
         if math.isclose(curr_temp, goal_temp):
             is_pause = 1
         else:
@@ -133,6 +162,8 @@ def poll(request):
             finally:
                 machine.lock.release()
 
+        state.is_work = data['is_work']
+        state.save()
         ret['data'] = data
         return JsonResponse(ret)
 
@@ -155,6 +186,7 @@ def push(msg):
             'msg': msg
         }
     )
+
 
 def get_time(request):
     if request.method == 'GET':
