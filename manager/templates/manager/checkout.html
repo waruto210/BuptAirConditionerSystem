@@ -1,7 +1,34 @@
-{% extends 'manager/index.html' %}
-{% block content %}
+{% extends 'base.html' %}
 
-<div class="container">
-    <p>这里给用户结账</p>
-</div>
-{% endblock content %}
+{% block title %}结账{% endblock title %}
+
+{% block navibar %}
+    <li class="treeview">
+        <a href="/manager/index">
+            <i class="fa fa-dashboard"></i> <span>主页</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="/manager/add">
+            <i class="fa fa-dashboard"></i> <span>客户入住</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="/manager/checkout">
+            <i class="fa fa-dashboard"></i> <span>结账</span>
+        </a>
+    </li>
+{% endblock navibar %}
+
+{% block page-wrapper %}
+    <div class="card" style="margin:0 auto;width: 18rem;">
+      <div class="card-header">
+        <p align="center"><b>消费账单</b></p>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">房间号: 001</li>
+        <li class="list-group-item">客户姓名: SKT Otto</li>
+        <li class="list-group-item">消费: 4396</li>
+      </ul>
+    </div>
+{% endblock page-wrapper %}

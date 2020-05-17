@@ -1,0 +1,29 @@
+{% extends 'adm/index.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% block content %}
+    <div style="width:100%;text-align:center">
+<form action="../../static/adm/setdefault.js " method="get">
+    <div>设置默认温度: <input type="text" name="fname" /></div>
+    <div>设置默认风速:
+        <input type="checkbox" name="风速" value="小风" /> 小风
+        <input type="checkbox" name="风速" value="中风"  />中风
+        <input type="checkbox" name="风速" value="大风"  />大风
+        </div>
+    <div>设置默认模式:
+        <input type="checkbox" name="模式" value="制冷" /> 制冷模式
+        <input type="checkbox" name="模式" value="制热"  /> 制热模式
+    </div>
+    <input type="submit" value="提交" />
+</form>
+    </div>
+{% endblock content %}
+
+</body>
+</html>

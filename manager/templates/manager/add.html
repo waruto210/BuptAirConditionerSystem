@@ -1,7 +1,61 @@
-{% extends 'manager/index.html' %}
-{% block content %}
+{% extends 'base.html' %}
+{% block style %}
+<style>
+.check-in-form
+{
+  width: 60%;
+  height: 60%;
+  padding: 40px;
+  overflow: auto;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 500px; bottom: 0; right: 0;
+}
+</style>
+{% endblock style %}
+{% block title %}客户入住{% endblock title %}
 
-<div class="container">
-    <p>这里录入新客户数据</p>
-</div>
-{% endblock content %}
+{% block navibar %}
+    <li class="treeview">
+        <a href="/manager/index">
+            <i class="fa fa-dashboard"></i> <span>主页</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="/manager/add">
+            <i class="fa fa-dashboard"></i> <span>客户入住</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="/manager/checkout">
+            <i class="fa fa-dashboard"></i> <span>结账</span>
+        </a>
+    </li>
+{% endblock navibar %}
+
+{% block page-wrapper %}
+    <div class="check-in-form">
+        <form action="/manager/add" method="post">
+          <div class="form-row align-items-center">
+              {% csrf_token %}
+            <div class="col-auto">
+              <label class="sr-only" for="inlineFormInput">Name</label>
+              <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Customer Name" name="c_name">
+            </div>
+            <div class="col-auto">
+              <label class="sr-only" for="inlineFormInputGroup">RoomID</label>
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">@</div>
+                </div>
+                <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="RoomId" name="r_id">
+              </div>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-2">入住</button>
+            </div>
+          </div>
+        </form>
+
+    </div>
+{% endblock page-wrapper %}
