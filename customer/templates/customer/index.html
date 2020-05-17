@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
  * @Author: your name
  * @Date: 2020-05-13 19:04:23
@@ -6,7 +8,7 @@
  * @Description: In User Settings Edit
  * @FilePath: /django-air/customer/templates/customer/index.html
  -->
-<?xml version="1.0" encoding="UTF-8"?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -40,19 +42,30 @@
      </div> 
      <div class="container"> 
          <!-- Content here -->
-         <div class="room">
-         <button type="button" class="btn btn-success" style="right: 600px;">房间号</button></div>
+
+         <div class="input-group flex-nowrap">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="addon-wrapping">@</span>
+          </div>
+          <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="Username" aria-describedby="addon-wrapping">
+        </div>
+          <div class="room">
+            <button type="button" id="room_id_btn" class="btn btn-success" style="right: 600px;">确认房间号</button>
+         </div>
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
              <div class="card-body" position:relative>
                <h5 class="card-title">空调面板</h5>
+                <div class="row">
+                    <h6 id="air_state"> 未开机</h6>
+               </div>
                <div class="row">
                  <div class="col-sm-6">
                     <span style="font-size:30px">模式</span> 
                    <img id="pic_mode" src="/static/images/snow.png" alt="..." class="img-rounded"width="150" height="150">
                  </div>
                  <div class="col-sm-6">
-                    <span style="font-size:30px">目标温度</span> </span><span id = "temp" style="font-size:70px;">{{ goal_temp }}</span>
-                    <span style="font-size:70px;">℃</span>
+                    <span style="font-size:30px">目标温度</span> </span><span id = "goal_temp" style="font-size:50px;"> 25 </span>
+                    <span style="font-size:50px;">℃</span>
                    <span class="glyphicon glyphicon-cloud">
                  </div>
                </div>
@@ -66,8 +79,9 @@
                   <span id = "speed" style="font-size:70px;">中风</span>
                 </div>
                 <div class="col-sm-6">
-                   <span style="font-size:30px">室内温度</span></span><span id = "current_temp" style="font-size:70px;">{{ env_temp }}</span>
-                   <span style="font-size:70px;">℃</span>
+                   <span style="font-size:30px">室内温度</span></span><span id = "curr_temp" style="font-size:50px;"> {{ env_temp }} </span>
+                   <span style="font-size:50px;">℃</span>
+                   <span class="glyphicon glyphicon-cloud">
                 </div>
               </div>
               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
