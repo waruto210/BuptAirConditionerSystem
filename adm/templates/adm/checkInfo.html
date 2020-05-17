@@ -1,0 +1,80 @@
+{% extends 'adm/index.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+{% block content %}
+
+    <table id="tb" class="table" width="30px">
+  <thead class="thead-dark">
+    <tr>
+        <th scope="col">Room_id</th>
+        <th scope="col">空调状态(开/关)</th>
+        <th scope="col">目标温度</th>
+        <th scope="col">当前温度</th>
+        <th scope="col">空调风速</th>
+        <th scope="col">空调模式</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <th scope="row">642</th>
+        <td>开</td>
+        <td>26</td>
+        <td>31</td>
+        <td>1</td>
+        <td>制冷</td>
+    </tr>
+    <tr>
+        <th scope="row">643</th>
+        <td>开</td>
+        <td>19</td>
+        <td>26</td>
+        <td>3</td>
+        <td>制冷</td>
+    </tr>
+    <tr>
+        <th scope="row">644</th>
+        <td>关</td>
+        <td>xxx</td>
+        <td>24</td>
+        <td>xxx</td>
+        <td>xxx</td>
+    </tr>
+  </tbody>
+</table>
+
+{#<input type="button" onclick="cell()"#}
+{#value="Alert first cell">#}
+
+    <script type="text/javascript">
+     /**
+	  * JavaScript遍历table
+	  */
+     function eachTableRow()
+	 {
+		 //获取table序号
+		 var tab=document.getElementById("tb");
+		 //获取行数
+     	 var rows=tab.rows;
+		 //遍历行
+     	 for(var i=1;i<rows.length;i++)
+     	{
+			//遍历表格列
+        	for(var j=0;j<rows[i].cells.length;j++)
+        	{
+				//打印某行某列的值
+       			console.log("第"+(i+1)+"行，第"+(j+1)+"列的值是:"+rows[i].cells[j].innerHTML);
+        	}
+     	}
+	 }
+</script>
+    <input type="button" value="遍历" onclick="eachTableRow()"/>
+{% endblock content %}
+
+</body>
+</html>
