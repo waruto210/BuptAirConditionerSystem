@@ -13,3 +13,18 @@ def set_temp(request):
             return JsonResponse({'result': 'ok', 'msg': 'ok'})
         else:
             return JsonResponse({'result': 'err', 'msg': 'para erros'})
+
+def adm(request):
+    if request.method =='GET':
+        return render(request,"adm/index.html")
+def checkinfo(request):
+    if request.method == 'GET':
+        return render(request, "adm/checkInfo.html")
+
+def setdefault(request):
+    if request.method == 'GET':
+        return render(request,"adm/setdefault.html")
+
+def openclose(request):
+    if request.method =='GET':
+        return render(request,"adm/openclose.html")

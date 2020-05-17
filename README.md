@@ -23,3 +23,8 @@ myc@outlook.com
 对customer页面前端js代码做了些修改
 - 05-15
 基本完成customer前端逻辑
+- 05-17
+修缮customer前端逻辑，开始写后端调度
+增加了新的项目依赖
+APScheduler==3.6.3
+django-apscheduler==0.3.0
