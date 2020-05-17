@@ -1,7 +1,7 @@
 let ws = null;
 
 let POWER_ON = "power_on", POWER_OFF = "power_off", CHANGE_SP = "change_sp", CHANGE_MODE = "change_mode", CHANGE_GOAL = "change_goal";
-let HEART_BEAT = "heaer_beat";
+let HEART_BEAT = "heart_beat";
 
 let total_high_time = 0, total_mid_time = 0, total_low_time = 0;
 
@@ -12,6 +12,7 @@ let temp_off = 2;
 // 上一次计算费用，温度变化的时间
 let last_cost_time = 0;
 
+let is_rate_timer = false;
 let rate_timer = null;
 // 轮询定时器
 let timer = null;
@@ -30,7 +31,7 @@ let sp_mode = 1;
 // 总费用
 let total_cost = 0;
 
-let room_id = "200";
+let room_id = null;
 // 目标温度上下限
 let hot_sub = 25, hot_sup = 30;
 let cold_sub = 18, cold_sup = 25;
@@ -40,11 +41,23 @@ $(document).ready(function() {
     env_temp = parseInt($("#curr_temp").text());
     curr_temp = env_temp;
     goal_temp = parseInt($("#goal_temp").text());
+    $("#mode_btn").attr("disabled", true);
+    $("#spd_btn").attr("disabled", true);
+    $("#temp_add_btn").attr("disabled", true);
+    $("#temp_minus_btn").attr("disabled", true);
 
+    $("#room_id_btn").on("click", function () {
+        room_id = $("#room_id_input").val()
+        console.log("room_id is:", room_id)
+    })
 
     $("#power_btn").on("click", function() {     
         if(power_on === false) {
             power_on = true;
+            $("#mode_btn").attr("disabled", false);
+            $("#spd_btn").attr("disabled", false);
+            $("#temp_add_btn").attr("disabled", false);
+            $("#temp_minus_btn").attr("disabled", false);
             post_power()
         } else {
             power_on = false;
@@ -95,7 +108,7 @@ $(document).ready(function() {
         if(work_mode == 1 && goal_temp > hot_sup) {
             goal_temp = hot_sup;
             alert("已经达到制热模式最大温度");
-        } else if(work_mode== 0 && goal_temp > cold_sup) {
+        } else if(work_mode == 0 && goal_temp > cold_sup) {
             alert("已经达到制冷模式最大温度，请切换到制热模式");
             goal_temp = cold_sup;
         } else {
@@ -106,10 +119,10 @@ $(document).ready(function() {
 
     $("#temp_minus_btn").on("click", function() {
         goal_temp = parseInt($("#goal_temp").text()) - 1;
-        if(work_mode==0 && goal_temp < cold_sub) {
+        if(work_mode == 0 && goal_temp < cold_sub) {
             goal_temp = cold_sub;
             alert("已经达到制冷模式最低温度");
-        } else if(work_mode==1 && goal_temp == cold_sup) {
+        } else if(work_mode == 1 && goal_temp < hot_sub) {
             goal_temp = hot_sub;
             alert("已经达到制热模式最低温度，请切换到制冷模式");
         } else {
@@ -124,19 +137,19 @@ $(document).ready(function() {
             $("#speed").text("中风");
             cal_cost();
             sp_mode++;
-            clearInterval(rate_timer);
-            
-            temp_low = temp_mid;
+            clear_rate();
         }else if(sp_mode == 1){
             $("#speed").text("高风");
             cal_cost();
             sp_mode++;
+            is_rate_timer = true;
             rate_timer = setInterval(change_rate, 10*1000);
         } else {
             $("#speed").text("低风");
             cal_cost();
             sp_mode = 0;
-            clearInterval(rate_timer);
+            clear_rate();
+            is_rate_timer = true;
             rate_timer = setInterval(change_rate, 10*1000);
             temp_high = temp_mid;
         }
@@ -157,6 +170,8 @@ function change_rate() {
 }
 
 function clear_rate() {
+    console.log("clear_timer");
+    is_rate_timer = false;
     clearInterval(rate_timer);
     temp_low = temp_mid;
     temp_high = temp_mid;
@@ -213,8 +228,7 @@ function cal_cost() {
 
 function poll() {
     cal_cost();
-    ins = HEART_BEAT;
-    post_poll(ins);
+    post_poll(HEART_BEAT);
 }
 function post_poll(ins) {
     obj = {
@@ -233,10 +247,16 @@ function post_poll(ins) {
         is_work = data.is_work
         console.log(data)
         if(is_work == false) {
-            clear_rate();
             $("#air_state").text("中央主机暂未送风");
+            if(is_rate_timer) {
+                clear_rate();
+            }
         } else {
             $("#air_state").text("空调工作中");
+            if((sp_mode == 2 || sp_mode == 0) && is_rate_timer == false) {
+                is_rate_timer = true;
+                rate_timer = setInterval(change_rate, 10*1000);
+            }
         }
     })
 }
@@ -254,9 +274,9 @@ function post_power() {
         },
     }
     myajax(obj, function(data) {
+        console.log(data)
         is_work = data.is_work
         if(is_work == false) {
-            clear_rate();
             $("#air_state").text("中央主机暂未送风");
         } else {
             $("#air_state").text("空调工作中");

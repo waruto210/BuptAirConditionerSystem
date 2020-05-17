@@ -42,8 +42,16 @@
      </div> 
      <div class="container"> 
          <!-- Content here -->
-         <div class="room">
-         <button type="button" class="btn btn-success" style="right: 600px;">房间号</button></div>
+
+         <div class="input-group flex-nowrap">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="addon-wrapping">@</span>
+          </div>
+          <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="Username" aria-describedby="addon-wrapping">
+        </div>
+          <div class="room">
+            <button type="button" id="room_id_btn" class="btn btn-success" style="right: 600px;">确认房间号</button>
+         </div>
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
              <div class="card-body" position:relative>
                <h5 class="card-title">空调面板</h5>
