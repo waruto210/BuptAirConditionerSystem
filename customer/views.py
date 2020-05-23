@@ -1,55 +1,83 @@
+from operator import attrgetter
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import Customer, State, Ticket, StatisicDay
-from datetime import datetime
+from .models import Customer, State, Ticket, StatisicDay, create_new_ticket, get_current_ticket
 import time
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from django.views.decorators.csrf import csrf_exempt
 import math
-from apscheduler.schedulers.background import BackgroundScheduler
-from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
-from master.main_machine import machine
-from datetime import datetime
-import uuid
-
-scheduler = BackgroundScheduler()
-scheduler.add_jobstore(DjangoJobStore(), 'default')
-
-
-@register_job(scheduler, 'interval', id='scheduler', seconds=25)
-def bg_job():
-    machine.lock.acquire()
-    try:
-        l = len(machine.wait_queue)
-        if l > machine.max_run and \
-                machine.wait_queue[machine.max_run - 1].is_pause == 0 and \
-                machine.wait_queue[machine.max_run].is_pause == 0 and \
-                machine.wait_queue[machine.max_run - 1].sp_mode == machine.wait_queue[machine.max_run].sp_mode:
-            machine.wait_queue[machine.max_run - 1].req_time = int(time.time())
-    finally:
-        machine.lock.release()
-
-register_events(scheduler)
-scheduler.start()
+from master.mainMachine import machine, cost_temp, temp, pause, rate_change
+import datetime
 
 
 @csrf_exempt
-def power(request):
-    ret = {
-        'code': 200,
-        'msg': 'ok',
-        'data': {}
-    }
-    data = {}
+def get_default(request):
+    if request.method == 'GET':
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+        }
+        data = {}
+
+        params = list(machine.get_params())
+        print('param is: ', params)
+        data['work_mode'] = params[0]
+        data['sp_mode'] = params[1]
+        data['cold_sub'] = params[2]
+        data['cold_sup'] = params[3]
+        data['hot_sub'] = params[4]
+        data['hot_sup'] = params[5]
+        data['env_temp'] = params[6]
+
+        ret['data'] = data
+        print('ret is: ', ret)
+        return JsonResponse(ret)
+
+
+@csrf_exempt
+def power_on(request):
     if request.method == 'POST':
+        ret = {
+            'code': 200,
+            'msg': 'ok'
+        }
+        data = {}
         room_id = request.POST.get('room_id', None)
-        ins = request.POST.get('ins', None)
-        goal_temp = float(request.POST.get('goal_temp', None))
-        curr_temp = float(request.POST.get('curr_temp', None))
+        phone_num = request.POST.get('phone_num', None)
+        goal_temp = int(request.POST.get('goal_temp', None))
+        curr_temp = int(request.POST.get('curr_temp', None))
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = int(request.POST.get('work_mode', None))
-        total_cost = float(request.POST.get('total_cost', None))
+        # 确认是否登记入住了
+        # try:
+        #     Customer.objects.get(RoomId=room_id)
+        # except Exception:
+        #     print("here")
+        #     ret['code'] = 1001
+        #     ret['msg'] = "当前房间未登记入住"
+        #     return JsonResponse(ret)
+        state, _ = State.objects.get_or_create(room_id=room_id)
+        state.goal_temp = goal_temp
+        state.curr_temp = curr_temp
+        state.sp_mode = sp_mode
+        state.work_mode = work_mode
+        state.is_on = True
+        state.is_work = False
+        state.save()
+
+        ret['data'] = data
+        return JsonResponse(ret)
+
+
+@csrf_exempt
+def power_off(request):
+    if request.method == 'POST':
+        ret = {
+            'code': 200,
+            'msg': 'ok'
+        }
+        data = {}
+        room_id = request.POST.get('room_id', None)
+        phone_num = request.POST.get('phone_num', None)
 
         # 确认是否登记入住了
         # try:
@@ -59,138 +87,114 @@ def power(request):
         #     ret['code'] = 1001
         #     ret['msg'] = "当前房间未登记入住"
         #     return JsonResponse(ret)
-
-        state, flag = State.objects.get_or_create(room_id=room_id)
-        state.goal_temp = goal_temp
-        state.curr_temp = curr_temp
-        state.sp_mode = sp_mode
-        state.work_mode = work_mode
-        state.total_cost = total_cost
-
-        if ins == 'power_on':
-            state.is_on = True
-        else:
-            state.is_on = False
-            state.is_work = False
-            state.save()
-            machine.lock.acquire()
-            try:
-                machine.delete_slave(room_id=room_id)
-            finally:
-                machine.lock.release()
-            return JsonResponse(ret)
-
-        if math.isclose(curr_temp, goal_temp):
-            is_pause = 1
-        else:
-            is_pause = 0
+        state = State.objects.get(room_id=room_id)
+        state.is_on = False
+        state.is_work = False
+        state.save()
+        ticket = get_current_ticket(room_id, phone_num)
+        ticket.end_time = datetime.datetime.now()
+        ticket.save()
+        # 删除调度队列中的slave对象
         machine.lock.acquire()
-        data['is_work'] = False
         try:
-            machine.add_slave(room_id=room_id, req_time=int(time.time()),
-                              sp_mode=int(sp_mode), is_pause=is_pause)
-            machine.schedule()
-            data['is_work'] = machine.get_is_work(room_id=room_id)
+            machine.contain_delete(room_id)
+            machine.wait_to_service()
         finally:
             machine.lock.release()
-        state.is_work = data['is_work']
-        state.save()
-        # 创建新的详单
-
-        data['is_on'] = True
         ret['data'] = data
         return JsonResponse(ret)
 
 
 @csrf_exempt
-def poll(request):
-    ret = {
-        'code': 200,
-        'msg': 'ok',
-    }
-    data = {}
+def change_state(request):
     if request.method == 'POST':
-        room_id = request.POST.get('room_id', None)
         ins = request.POST.get('ins', None)
+        room_id = request.POST.get('room_id', None)
+        phone_num = request.POST.get('phone_num', None)
         goal_temp = float(request.POST.get('goal_temp', None))
-        curr_temp = float(request.POST.get('curr_temp', None))
-        sp_mode = int(request.POST.get('sp_mode', None))
-        work_mode = request.POST.get('work_mode', None)
-        total_cost = request.POST.get('total_cost', None)
-        delta_cost = float(request.POST.get('delta_cost', None))
-
-        state = State.objects.get(room_id=room_id)
-
-        state.goal_temp = goal_temp
-        state.curr_temp = curr_temp
-        state.sp_mode = sp_mode
-        state.work_mode = work_mode
-        state.total_cost = total_cost
-
-        # 统计信息
-
-        if math.isclose(curr_temp, goal_temp):
-            is_pause = 1
-        else:
-            is_pause = 0
-        data['is_work'] = True
-        if is_pause == 0:
+        work_mode = int(request.POST.get('work_mode', None))
+        if ins == 'change_sp':
+            pre_sp = int(request.POST.get('pre_sp', None))
+            sp_mode = int(request.POST.get('sp_mode', None))
+            # 开机后的立即请求,新建ticket
+            if pre_sp == -1:
+                ticket = create_new_ticket(room_id, phone_num, sp_mode)
+            else:
+                # 否则取当前ticket的单子
+                ticket = get_current_ticket(room_id, phone_num)
+                if ticket.schedule_count == 0:
+                    # 如果上次请求未被调度，则作为新的ticket
+                    ticket.start_time = datetime.datetime.now()
+                    ticket.sp_mode = sp_mode
+                else:
+                    # 保存上次ticket，新建ticket
+                    ticket.end_time = datetime.datetime.now()
+                    ticket.save()
+                    ticket = create_new_ticket(room_id, phone_num, sp_mode)
+            ticket.save()
             machine.lock.acquire()
             try:
-                pre_is_pause = machine.get_is_pause(room_id)
-                # 如果之前是达到目标温度，暂停送风
-                if pre_is_pause == 1:
-                    # 差距达到1度
-                    if math.fabs(curr_temp - goal_temp) >= 1:
-                        # 继续申请送风
-                        is_pause = 0
-                        machine.set_pause(room_id, is_pause)
-                if ins == "change_sp":
-                    machine.change_sp(room_id, sp_mode)
-                machine.schedule()
-                data['is_work'] = machine.get_is_work(room_id)
+                # 删掉旧请求，调度等待队列
+                machine.contain_delete(room_id)
+                machine.wait_to_service()
+                # 加入新请求
+                machine.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
             finally:
                 machine.lock.release()
-        else:
-            machine.lock.acquire()
-            try:
-                machine.set_pause(room_id, is_pause)
-                if ins == "change_sp":
-                    machine.change_sp(room_id, sp_mode)
-                machine.schedule()
-                data['is_work'] = machine.get_is_work(room_id)
-            finally:
-                machine.lock.release()
-
-        state.is_work = data['is_work']
-        state.save()
-        ret['data'] = data
+        elif ins == 'change_goal':
+            state = State.objects.get(room_id=room_id)
+            state.goal_temp = goal_temp
+            state.save()
+        elif ins == 'change_mode':
+            state = State.objects.get(room_id=room_id)
+            state.work_mode = work_mode
+            state.save()
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+            'data': {},
+        }
         return JsonResponse(ret)
 
+
+@csrf_exempt
+def poll(request):
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id', None)
+        phone_num = request.POST.get('phone_num', None)
+        pos = machine.get_pos(room_id)
+        if pos == 'service':
+            cost_temp(room_id, phone_num)
+        elif pos == 'wait':
+            temp(room_id)
+        else:
+            pause(room_id, phone_num)
+
+        state = State.objects.get(room_id=room_id)
+        curr_temp = state.curr_temp
+        total_cost = state.total_cost
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+            'data': {
+                'is_work': (pos == 'service'),
+                'curr_temp': curr_temp,
+                'total_cost': total_cost,
+            }
+        }
+        return JsonResponse(ret)
+
+@csrf_exempt
+def change_rate(request):
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id', None)
+        rate_change(room_id)
+        return JsonResponse({'code': 200})
 
 def customer(request):
     if request.method == 'GET':
-        env_temp = machine.get_temp()
-        if env_temp is not None:
-            return render(request, "customer/control.html", {'env_temp': env_temp})
+        if machine.is_on():
+            return render(request, "customer/index_copy.html")
         else:
             return HttpResponse("中央空调未开机")
 
-
-def push(msg):
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        'push',
-        {
-            'type': 'push.song',
-            'msg': msg
-        }
-    )
-
-
-def get_time(request):
-    if request.method == 'GET':
-        stamp = datetime.now()
-        ret = {'time': str(stamp)}
-        push('another get_time')
-        return JsonResponse(ret)

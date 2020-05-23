@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import set_temp,checkinfo,setdefault,adm,openclose
+from .views import set_params,checkinfo,setdefault,adm,openclose
 urlpatterns = [
-    path('settemp', set_temp),
+    path('settemp', set_params),
     path('',adm),
     path('checkInfo',checkinfo),
     path('setdefault',setdefault),

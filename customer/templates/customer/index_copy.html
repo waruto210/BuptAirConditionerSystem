@@ -10,18 +10,18 @@
  -->
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:position="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" crossorigin="anonymous"></script>
-    <script src="/static/js/bootstrap.min.js"></script>  
+    <script src="/static/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="/static/css/fonts.css" />
-    
+
 
     {% load static %}
-    <script src="{% static 'customer/action' %}"></script>
+    <script src="{% static 'customer/action_copy.js' %}"></script>
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>空调管理系统</title>
@@ -39,37 +39,39 @@
     <div class="container" style="max-width: 200rem;height:30px">
          <!--  <nav class="navbar navbar-light bg-light">
              <a class="navbar-brand" href="#">空调控制面板</a>-->
-     </div> 
-     <div class="container"> 
+     </div>
+     <div class="container">
          <!-- Content here -->
 
          <div class="input-group flex-nowrap">
           <div class="input-group-prepend">
             <span class="input-group-text" id="addon-wrapping">@</span>
           </div>
-          <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="Username" aria-describedby="addon-wrapping">
         </div>
           <div class="room">
-            <button type="button" id="room_id_btn" class="btn btn-success" style="right: 600px;">确认房间号</button>
+              <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="room id" >
+              <input type="text" id="phone_number_input" class="form-control" placeholder="手机号" aria-label="phone number">
+            <button type="button" id="info_btn" class="btn btn-success" style="right: 600px;">确认房间号</button>
          </div>
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
-             <div class="card-body" style="position:relative" >
+             <div class="card-body" style="position:relative">
                <h5 class="card-title">空调面板</h5>
                 <div class="row">
                     <h6 id="air_state"> 未开机</h6>
                </div>
                <div class="row">
                  <div class="col-sm-6">
-                    <span style="font-size:30px">模式</span> 
+                    <span style="font-size:30px">模式</span>
                    <img id="pic_mode" src="/static/images/snow.png" alt="..." class="img-rounded"width="150" height="150">
                  </div>
                  <div class="col-sm-6">
-                    <span style="font-size:30px">目标温度</span> </span><span id = "goal_temp" style="font-size:50px;"> 25 </span>
+                    <span style="font-size:30px">目标温度</span> </span><span id = "goal_temp" style="font-size:50px;"> </span>
                     <span style="font-size:50px;">℃</span>
-                     <span class="glyphicon glyphicon-cloud"></span>
+                     <span class="glyphicon glyphicon-cloud"> </span>
+
                  </div>
                </div>
-               
+
                <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
 
                <div class="row">
@@ -79,17 +81,17 @@
                   <span id = "speed" style="font-size:70px;">中风</span>
                 </div>
                 <div class="col-sm-6">
-                   <span style="font-size:30px">室内温度</span></span><span id = "curr_temp" style="font-size:50px;"> {{ env_temp }} </span>
+                   <span style="font-size:30px">室内温度</span></span><span id = "curr_temp" style="font-size:50px;"> </span>
                    <span style="font-size:50px;">℃</span>
                     <span class="glyphicon glyphicon-cloud"> </span>
                 </div>
               </div>
               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>
               <div class="show_cost"><h1><span>总费用:</span><span id="total_cost">0</span></h1> </div>
-        
-        
+
+
              </div>
-         </div>  
+         </div>
 
          <div class="card text-white bg-info mb-3" style="max-width: 900px;height:40px;margin-left: 120px;">
 
@@ -99,15 +101,15 @@
                  <button type="button" class="btn btn-secondary btn-info" id = "spd_btn"><span class="glyphicon glyphicon-cloud"></span></button>
                  <button type="button" class="btn btn-secondary btn-info" id ="temp_add_btn"><span class="glyphicon glyphicon-triangle-top"></span></button>
                  <button type="button" class="btn btn-secondary btn-info" id ="temp_minus_btn"><span class="glyphicon glyphicon-triangle-bottom"></span></button>
-                 
+
              </div>
          </div>
-         
-     </div>     
+
      </div>
-     
+     </div>
+
      <ul class="nav nav-list"><li class="divider" style="background-color: black;height:10px;"></li></ul>
-      
- 
+
+
  </body>
-</html> 
+</html>

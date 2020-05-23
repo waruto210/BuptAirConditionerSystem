@@ -1,5 +1,5 @@
 from django.db import models
-
+import datetime
 
 # Create your models here.
 class Customer(models.Model):
@@ -28,27 +28,40 @@ class State(models.Model):
     sp_mode = models.IntegerField(choices=choice2, null=True)
     goal_temp = models.IntegerField(null=True)
     curr_temp = models.FloatField(null=True)
-    total_cost = models.FloatField(null=True)
+    total_cost = models.FloatField(default=0)
 
 
 class Ticket(models.Model):
     room_id = models.CharField(max_length=20)
-    # user_id = models.UUIDField()
-    ticket_id = models.IntegerField()
+    phone_num = models.CharField(max_length=20)
+    ticket_id = models.IntegerField(default=0)
 
     # 开机 换风速
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True)
     # 调度成功一次
     schedule_count = models.IntegerField(default=0)
+    service_duration = models.IntegerField(default=0)
     choice2 = (
         (0, 'low'),
         (1, 'middle'),
         (2, 'high'),
     )
-    sp_mode = models.IntegerField(choices=choice2, null=True)
+    sp_mode = models.IntegerField(choices=choice2)
     # 通过delta_cost
     cost = models.FloatField(default=0.0)
+
+
+def get_current_ticket(room_id, phone_num) -> Ticket:
+    tickets = list(Ticket.objects.filter(room_id=room_id, phone_num=phone_num))
+    return tickets[-1]
+
+
+def create_new_ticket(room_id, phone_num, sp_mode) -> Ticket:
+    length = Ticket.objects.filter(room_id=room_id, phone_num=phone_num).count()
+    ticket = Ticket.objects.create(room_id=room_id, phone_num=phone_num, ticket_id=length+1,
+                                   start_time=datetime.datetime.now(), sp_mode=sp_mode)
+    return ticket
 
 
 class StatisicDay(models.Model):
@@ -56,21 +69,20 @@ class StatisicDay(models.Model):
     date = models.DateField()
     # 开关机加上
     oc_count = models.IntegerField(default=0)
-    # 调度成功一次加30s吧
-    total_hours = models.IntegerField(default=0)
-    total_minites = models.FloatField(default=0)
-    total_ses = models.IntegerField(default=0)
+    # 最常用温度
+    common_temp = models.IntegerField(default=26)
+    # 最常用风速
+    choice = (
+        (0, 'low'),
+        (1, 'middle'),
+        (2, 'high'),
+    )
+    common_spd = models.IntegerField(choices=choice, default=1)
+    # 达到目标温度次数
+    achieve_count = models.IntegerField(default=0)
+    # 被调度次数
     schedule_count = models.IntegerField(default=0)
-
-    # 通过delta_cost加上
-    total_cost = models.FloatField(default=0.0)
-    # 在处理request统计
+    # 详单数量
     ticket_count = models.IntegerField(default=0)
-    ct_count = models.IntegerField(default=0)
-    cs_count = models.IntegerField(default=0)
-
-
-class TicketCount(models.Model):
-    room_id = models.CharField(max_length=20)
-    # user_id = models.CharField(max_length=20)
-    ticket_count = models.IntegerField(default=0)
+    # 总费用
+    total_cost = models.FloatField(default=0)
