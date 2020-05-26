@@ -167,7 +167,7 @@ LOGGING = {
     'loggers': {
         # 默认的logger应用如下配置
         '': {
-            'handlers': ['default', 'console', 'error'],  # 上线之后可以把'console'移除
+            'handlers': ['default', 'error'],  # 上线之后可以把'console'移除
             'level': 'DEBUG',
             'propagate': True,  # 向不向更高级别的logger传递
         },

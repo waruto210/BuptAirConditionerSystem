@@ -6,8 +6,8 @@ from customer.models import State, get_current_ticket
 import datetime
 import math
 from master.views import scheduler
-import logging as logger
-
+import logging
+logger = logging.getLogger('collect')
 CAL_INTERVAL = 5
 WAIT_INTERVAL = 30
 RATE_INTERVAL = 15
@@ -83,10 +83,10 @@ class MainMachine:
 
     def add_wait(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, timer=True):
         s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
-        logger.debug("room_id: " + str(room_id) + "添加到等待队列")
+        logger.info("room_id: " + str(room_id) + "添加到等待队列")
         if timer:
             s.wait_timer = True
-            logger.debug("room_id: " + str(room_id) + "设置等待计时器")
+            logger.info("room_id: " + str(room_id) + "设置等待计时器")
             scheduler.add_job(wait, 'date', id=room_id + 'wait',
                               run_date=(datetime.datetime.now() + datetime.timedelta(seconds=WAIT_INTERVAL)),
                               args=[room_id])
@@ -188,7 +188,7 @@ class MainMachine:
                     item.temp_rate *= 0.8
                 elif item.sp_mode == 2:
                     item.temp_rate *= 1.2
-                logger.debug("room: " + str(room_id) + " rate chang to: " + str(item.temp_rate))
+                logger.info("room: " + str(room_id) + " rate chang to: " + str(item.temp_rate))
                 return
 
     def get_queue_pos(self, room_id):
@@ -232,7 +232,8 @@ def service_cost_temp(room_id, phone_num):
     state = State.objects.get(room_id=room_id)
     curr_temp = state.curr_temp
     goal_temp = state.goal_temp
-    logger.debug("room_id: " + str(room_id) +  "服务中")
+    logger.info(
+        "room_id: " + str(room_id) +  "服务中")
     temp_rate, fee_rate = machine.get_rate_fee(room_id=room_id)
     if temp_rate is None or fee_rate is None:
         logger.error("get rate and fee error!")
@@ -279,13 +280,13 @@ def wait_temp(room_id):
     if math.isclose(env_temp, curr_temp) is not True:
         curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
         state.curr_temp = curr_temp
-        logger.debug("room_id: " + str(room_id) + "等待中, curr_temp: " + str(curr_temp))
+        logger.info("room_id: " + str(room_id) + "等待中, curr_temp: " + str(curr_temp))
         state.save()
     return
 
 
 def wait(room_id):
-    logger.debug("room_id: " + str(room_id) + " 等待超时")
+    logger.info("room_id: " + str(room_id) + " 等待超时")
     machine.lock.acquire()
     try:
         machine.wait_over(room_id)
@@ -308,10 +309,10 @@ def pause(room_id, phone_num):
             curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
             state.curr_temp = curr_temp
             state.save()
-            logger.debug("room_id: " + str(room_id) + "向室温回落" + str(curr_temp))
+            logger.info("room_id: " + str(room_id) + "向室温回落" + str(curr_temp))
     # 温差达到1度
     if math.fabs(goal_temp - curr_temp) >= 0.9999:
-        logger.debug('room_id:' + str(room_id) + "温差达到1度")
+        logger.info('room_id:' + str(room_id) + "温差达到1度")
         machine.lock.acquire()
         try:
             s = machine.delete_pause(room_id)
