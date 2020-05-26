@@ -13,8 +13,8 @@ class Customer(models.Model):
 class State(models.Model):
     room_id = models.CharField(max_length=20, primary_key=True)
     # RoomId = models.ForeignKey('Customer',on_delete=models.CASCADE)
-    is_on = models.BooleanField(null=True)
-    is_work = models.BooleanField(null=True)
+    is_on = models.BooleanField(default=False)
+    is_work = models.BooleanField(default=False)
     choice1 = (
         (1, 'hot'),
         (0, 'cold'),

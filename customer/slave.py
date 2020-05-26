@@ -2,19 +2,18 @@ from operator import attrgetter
 
 
 class Slave:
-    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, is_run: bool):
+    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
         self.room_id = room_id
         self.phone_num = phone_num
         # 接受送风服务的开始时间或者 无送风服务的等待开始时间
         self.req_time = req_time
         self.sp_mode = sp_mode
         self.inverse_sp = 2 - sp_mode
-        self.is_run = is_run
-        self.rate = 2
+        self.temp_rate = 2
         self.wait_timer = False
 
     def __repr__(self):
-        return repr((self.room_id, self.sp_mode, self.req_time, self.rate, self.is_run, self.timeout))
+        return repr((self.room_id, self.sp_mode, self.req_time, self.temp_rate, self.wait_timer))
 
     __str__ = __repr__
 

@@ -247,18 +247,18 @@ $(document).ready(function() {
             $speed.text("中风");
             pre_sp = sp_mode;
             sp_mode++;
-            clear_rate_timer();
+            //clear_rate_timer();
         }else if(sp_mode === 1){
             $speed.text("高风");
             pre_sp = sp_mode;
             sp_mode++;
-            set_rate_timer();
+            //set_rate_timer();
         } else {
             $speed.text("低风");
             pre_sp = sp_mode;
             sp_mode = 0;
-            clear_rate_timer();
-            set_rate_timer();
+            //clear_rate_timer();
+            //set_rate_timer();
 
         }
         if(is_spmode_change_timer === false) {
@@ -305,11 +305,11 @@ function poll() {
             let data = ret.data;
             if (data.is_work === false) {
                 $air_state.text('未送风');
-                clear_rate_timer();
+                //clear_rate_timer();
             } else {
                 $air_state.text('送风中');
                 if(sp_mode !== 1) {
-                    set_rate_timer();
+                    //set_rate_timer();
                 }
             }
             curr_temp = data.curr_temp;

@@ -6,6 +6,7 @@ from customer.models import State, get_current_ticket
 import datetime
 import math
 from master.views import scheduler
+import logging as logger
 
 CAL_INTERVAL = 5
 WAIT_INTERVAL = 30
@@ -31,7 +32,7 @@ class MainMachine:
         self.cold_sup = 26
         self.hot_sub = 26
         self.hot_sup = 30
-        self.fees = [1 / 3, 2 / 3, 1]
+        self.fee_rates = [1 / 3, 2 / 3, 1]
         self.max_run = 1
 
     def get_params(self):
@@ -59,17 +60,21 @@ class MainMachine:
             self.cold_sup = cold_sup
             self.hot_sub = hot_sub
             self.hot_sup = hot_sup
-            self.fees = self.fees * fee
+            self.fee_rates = self.fee_rates * fee
             self.max_run = max_run
         finally:
             self.lock.release()
 
     def add_service(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, is_run=True)
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
+        if sp_mode != 1:
+            scheduler.add_job(change_temp_rate, 'interval', id=room_id+'change_temp_rate', seconds=RATE_INTERVAL, args=[room_id])
+        # 修改工作状态
         state = State.objects.get(room_id=room_id)
         state.is_work = True
         state.save()
 
+        # 增加一次被调度
         ticket = get_current_ticket(room_id, phone_num)
         ticket.schedule_count += 1
         ticket.save()
@@ -77,22 +82,39 @@ class MainMachine:
         self.service_queue.append(s)
 
     def add_wait(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, timer=True):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, is_run=False)
-        print("room_id: ", room_id, "添加到等待队列")
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
+        logger.debug("room_id: " + str(room_id) + "添加到等待队列")
         if timer:
             s.wait_timer = True
-            print("room_id: ", room_id, "设置等待计时器")
+            logger.debug("room_id: " + str(room_id) + "设置等待计时器")
             scheduler.add_job(wait, 'date', id=room_id + 'wait',
                               run_date=(datetime.datetime.now() + datetime.timedelta(seconds=WAIT_INTERVAL)),
                               args=[room_id])
+        # 修改工作状态
         state = State.objects.get(room_id=room_id)
         state.is_work = False
         state.save()
         self.wait_queue.append(s)
 
+    def delete_room(self, room_id):
+        for item in self.service_queue:
+            if item.room_id == room_id:
+                self.delete_service(room_id)
+                return
+        for item in self.wait_queue:
+            if item.room_id == room_id:
+                self.delete_wait(room_id)
+                return
+        for item in self.pause_queue:
+            if item.room_id == room_id:
+                self.delete_pause(room_id)
+                return
+
     def delete_service(self, room_id: str):
         for i in range(len(self.service_queue)):
             if self.service_queue[i].room_id == room_id:
+                if self.service_queue[i].sp_mode != 1:
+                    scheduler.remove_job(job_id=room_id+'change_temp_rate')
                 return self.service_queue.pop(i)
 
     def delete_wait(self, room_id: str):
@@ -109,9 +131,8 @@ class MainMachine:
 
     def move_to_pause(self, room_id):
         s = self.delete_service(room_id)
-        s.is_run = False
+        # 修改状态
         state = State.objects.get(room_id=room_id)
-
         state.is_work = False
         state.save()
         self.pause_queue.append(s)
@@ -127,76 +148,12 @@ class MainMachine:
         return s
 
     def wait_to_service(self):
-        if len(self.wait_queue) == 0:
-            return None
+        if len(self.wait_queue) == 0 or len(self.service_queue) == self.max_run:
+            return
         self.wait_queue.sort(key=attrgetter('inverse_sp', 'req_time'))
         s = self.delete_wait(self.wait_queue[0].room_id)
         self.add_service(room_id=s.room_id, phone_num=s.phone_num, req_time=int(time.time()), sp_mode=s.sp_mode)
         return s
-
-    def get_pos(self, room_id):
-        for item in self.service_queue:
-            if item.room_id == room_id:
-                return 'service'
-        for item in self.wait_queue:
-            if item.room_id == room_id:
-                return 'wait'
-        for item in self.service_queue:
-            if item.room_id == room_id:
-                return 'pause'
-
-    def get_s(self, room_id):
-        for item in self.service_queue:
-            if item.room_id == room_id:
-                return item
-        for item in self.wait_queue:
-            if item.room_id == room_id:
-                return item
-
-    def set_wait_timer(self, room_id):
-        for item in self.wait_queue:
-            if item.room_id == room_id:
-                item.wait_timer = False
-
-    def change_sp(self, room_id, sp_mode):
-        for item in self.service_queue:
-            if item.room_id == room_id:
-                item.sp_mode = sp_mode
-                item.inverse_sp = 2 - sp_mode
-                return
-
-    def get_rate_fee(self, room_id):
-        self.lock.acquire()
-        try:
-            for item in self.service_queue:
-                if item.room_id == room_id:
-                    return item.rate, self.fees[item.sp_mode]
-        finally:
-            self.lock.release()
-
-    def is_room_work(self, room_id):
-        self.lock.acquire()
-        try:
-            for item in self.service_queue:
-                if item.room_id == room_id:
-                    return True
-            return False
-        finally:
-            self.lock.release()
-
-    def contain_delete(self, room_id):
-        for item in self.service_queue:
-            if item.room_id == room_id:
-                self.delete_service(room_id)
-                return
-        for item in self.wait_queue:
-            if item.room_id == room_id:
-                self.delete_wait(room_id)
-                return
-        for item in self.pause_queue:
-            if item.room_id == room_id:
-                self.delete_pause(room_id)
-                return
 
     def new_request(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
         if len(self.service_queue) < self.max_run:
@@ -208,16 +165,18 @@ class MainMachine:
                 self.move_to_wait(self.service_queue[0].room_id)
                 self.add_service(room_id, phone_num, req_time, sp_mode)
             elif self.service_queue[0].sp_mode == sp_mode:
+                # 优先级相当，要添加计时器
                 self.add_wait(room_id, phone_num, req_time, sp_mode)
             else:
+                # 优先级低，不断等
                 self.add_wait(room_id, phone_num, req_time, sp_mode, timer=False)
 
     # 结束等待的请求，返回来处理
-    def revive(self, room_id):
-        # 风速最低，服务时间最长的拍第0
-        self.set_wait_timer(room_id)
+    def wait_over(self, room_id):
+        # 风速最低，服务时间最长的排第0
+        self.false_wait_timer(room_id)
         self.service_queue.sort(key=attrgetter('sp_mode', 'req_time'))
-        s = self.get_s(room_id)
+        s = self.get_slave(room_id)
         if self.service_queue[0].sp_mode <= s.sp_mode:
             self.move_to_wait(self.service_queue[0].room_id)
             self.move_to_service(room_id)
@@ -226,32 +185,61 @@ class MainMachine:
         for item in self.service_queue:
             if item.room_id == room_id:
                 if item.sp_mode == 0:
-                    item.rate *= 0.8
+                    item.temp_rate *= 0.8
                 elif item.sp_mode == 2:
-                    item.rate *= 1.2
-                print("room: ", room_id, " rate chang to: ", item.rate)
+                    item.temp_rate *= 1.2
+                logger.debug("room: " + str(room_id) + " rate chang to: " + str(item.temp_rate))
                 return
 
-    def get_is_work(self, room_id):
+    def get_queue_pos(self, room_id):
         for item in self.service_queue:
             if item.room_id == room_id:
-                return item.is_run
-        return None
+                return 'service'
+        for item in self.wait_queue:
+            if item.room_id == room_id:
+                return 'wait'
+        for item in self.service_queue:
+            if item.room_id == room_id:
+                return 'pause'
+
+    def get_slave(self, room_id):
+        for item in self.service_queue:
+            if item.room_id == room_id:
+                return item
+        for item in self.wait_queue:
+            if item.room_id == room_id:
+                return item
+
+    def false_wait_timer(self, room_id):
+        for item in self.wait_queue:
+            if item.room_id == room_id:
+                item.wait_timer = False
+
+    def get_rate_fee(self, room_id):
+        self.lock.acquire()
+        try:
+            for item in self.service_queue:
+                if item.room_id == room_id:
+                    return item.temp_rate, self.fee_rates[item.sp_mode]
+        finally:
+            self.lock.release()
 
 
 machine = MainMachine()
 
 
-def cost_temp(room_id, phone_num):
+def service_cost_temp(room_id, phone_num):
     state = State.objects.get(room_id=room_id)
     curr_temp = state.curr_temp
     goal_temp = state.goal_temp
-    print("room_id: ", room_id, "服务中")
-    rate, fee = machine.get_rate_fee(room_id=room_id)
+    logger.debug("room_id: " + str(room_id) +  "服务中")
+    temp_rate, fee_rate = machine.get_rate_fee(room_id=room_id)
+    if temp_rate is None or fee_rate is None:
+        logger.error("get rate and fee error!")
+        return
+    curr_temp = cal_curr_temp(curr_temp, goal_temp, temp_rate)
+    delta_fee = fee_rate * CAL_INTERVAL / 60
 
-    curr_temp = cal_curr_temp(curr_temp, goal_temp, rate)
-    delta_fee = fee * CAL_INTERVAL / 60
-    print("cal cost and temp: ", room_id, 'curr_temp is:', curr_temp)
     # 记录温度和费用
     state.curr_temp = curr_temp
     state.total_cost += delta_fee
@@ -273,8 +261,7 @@ def cost_temp(room_id, phone_num):
     return
 
 
-def rate_change(room_id):
-    print("room_id: ", room_id, " change_rate")
+def change_temp_rate(room_id):
     machine.lock.acquire()
     try:
         machine.change_rate(room_id)
@@ -284,7 +271,7 @@ def rate_change(room_id):
 
 
 # 等待时温度变化
-def temp(room_id):
+def wait_temp(room_id):
     state = State.objects.get(room_id=room_id)
     curr_temp = state.curr_temp
     env_temp = machine.env_temp
@@ -292,16 +279,16 @@ def temp(room_id):
     if math.isclose(env_temp, curr_temp) is not True:
         curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
         state.curr_temp = curr_temp
-        print("room_id: ", room_id, "等待中, ", "curr_temp: ", curr_temp)
+        logger.debug("room_id: " + str(room_id) + "等待中, curr_temp: " + str(curr_temp))
         state.save()
     return
 
 
 def wait(room_id):
-    print("room_id: ", room_id, " 等待超时")
+    logger.debug("room_id: " + str(room_id) + " 等待超时")
     machine.lock.acquire()
     try:
-        machine.revive(room_id)
+        machine.wait_over(room_id)
     finally:
         machine.lock.release()
     return
@@ -321,10 +308,10 @@ def pause(room_id, phone_num):
             curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
             state.curr_temp = curr_temp
             state.save()
-            print("room_id :", room_id, "向室温回落", curr_temp)
+            logger.debug("room_id: " + str(room_id) + "向室温回落" + str(curr_temp))
     # 温差达到1度
     if math.fabs(goal_temp - curr_temp) >= 0.9999:
-        print('room_id:' + room_id + " 服务苏醒")
+        logger.debug('room_id:' + str(room_id) + "温差达到1度")
         machine.lock.acquire()
         try:
             s = machine.delete_pause(room_id)

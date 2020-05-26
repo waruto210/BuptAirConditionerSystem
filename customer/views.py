@@ -5,7 +5,7 @@ from .models import Customer, State, Ticket, StatisicDay, create_new_ticket, get
 import time
 from django.views.decorators.csrf import csrf_exempt
 import math
-from master.mainMachine import machine, cost_temp, temp, pause, rate_change
+from master.mainMachine import machine, service_cost_temp, wait_temp, pause, change_temp_rate
 import datetime
 
 
@@ -97,7 +97,7 @@ def power_off(request):
         # 删除调度队列中的slave对象
         machine.lock.acquire()
         try:
-            machine.contain_delete(room_id)
+            machine.delete_room(room_id)
             machine.wait_to_service()
         finally:
             machine.lock.release()
@@ -132,10 +132,11 @@ def change_state(request):
                     ticket.save()
                     ticket = create_new_ticket(room_id, phone_num, sp_mode)
             ticket.save()
+            # 处理新请求
             machine.lock.acquire()
             try:
                 # 删掉旧请求，调度等待队列
-                machine.contain_delete(room_id)
+                machine.delete_room(room_id)
                 machine.wait_to_service()
                 # 加入新请求
                 machine.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
@@ -162,11 +163,11 @@ def poll(request):
     if request.method == 'POST':
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
-        pos = machine.get_pos(room_id)
+        pos = machine.get_queue_pos(room_id)
         if pos == 'service':
-            cost_temp(room_id, phone_num)
+            service_cost_temp(room_id, phone_num)
         elif pos == 'wait':
-            temp(room_id)
+            wait_temp(room_id)
         else:
             pause(room_id, phone_num)
 
@@ -188,7 +189,7 @@ def poll(request):
 def change_rate(request):
     if request.method == 'POST':
         room_id = request.POST.get('room_id', None)
-        rate_change(room_id)
+        change_temp_rate(room_id)
         return JsonResponse({'code': 200})
 
 def customer(request):
