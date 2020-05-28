@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import power_off, customer, poll, get_default, power_on, change_state, change_rate
+from .views import power_off, customer, poll, get_default, power_on, change_state, pause, re_start
 urlpatterns = [
     path('', customer),
     path('power_on', power_on),
@@ -7,5 +7,6 @@ urlpatterns = [
     path('poll', poll),
     path('get_default', get_default),
     path('change_state', change_state),
-    path('change_rate', change_rate)
+    path('pause', pause),
+    path('re_start', re_start),
 ]

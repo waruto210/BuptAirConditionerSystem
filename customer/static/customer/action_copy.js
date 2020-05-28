@@ -5,7 +5,7 @@ let HEART_BEAT_INTERVAL = 3;
 
 let rate_timer = null;
 let is_rate_timer = false;
-
+let is_pause = false;
 let is_temp_change_timer = false;
 let is_spmode_change_timer = false;
 // 轮询定时器
@@ -265,8 +265,6 @@ $(document).ready(function() {
             is_spmode_change_timer = true;
             setTimeout(function () {
                 is_spmode_change_timer = false;
-                // 不足5s按照5s计算
-                poll();
                 changeState(CHANGE_SP);
             }, 1000);
         }
@@ -295,7 +293,6 @@ function poll() {
         url: 'poll',
         type: 'POST',
         dataType: 'JSON',
-        async: false,
         data: {
             'room_id': room_id,
             'phone_num': phone_num,
@@ -316,6 +313,51 @@ function poll() {
             total_cost = data.total_cost;
             $curr_temp.text(curr_temp.toFixed(2));
             $total_cost.text(total_cost.toFixed(2));
+            // 达到目标温度，主动请求停止送风
+            if(Math.abs(curr_temp  - goal_temp) < 1e-5 && data.is_work === true) {
+                is_pause = true;
+                pause();
+            } else if(Math.abs(curr_temp - goal_temp) > 0.999 && is_pause === true) {
+                is_pause = false;
+                re_start();
+            }
+        }
+    })
+}
+
+function pause() {
+    $.ajax({
+        url: 'pause',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
+            'phone_num': phone_num,
+        },
+        success: function (ret) {
+            if(ret.code !== 200) {
+                console.log(ret.msg);
+                return
+            }
+            $air_state.text("未送风");
+        }
+    })
+}
+
+function re_start() {
+    $.ajax({
+        url: 're_start',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
+            'phone_num': phone_num,
+            'sp_mode': sp_mode,
+        },
+        success: function (ret) {
+            if(ret.code !== 200) {
+                console.log(ret.msg);
+            }
         }
     })
 }
@@ -394,20 +436,20 @@ function postPowerOn() {
 }
 
 
-
-function set_rate_timer() {
-    if(is_rate_timer === false) {
-        console.log('set rate_timer');
-        rate_timer = setInterval(change_rate, RATE_CHANGE_INTERVAL*1000);
-        is_rate_timer = true;
-    }
-
-}
-
-function clear_rate_timer() {
-    if(is_rate_timer === true) {
-        console.log("clear rate_timer");
-        clearInterval(rate_timer);
-        is_rate_timer = false;
-    }
-}
+//
+// function set_rate_timer() {
+//     if(is_rate_timer === false) {
+//         console.log('set rate_timer');
+//         rate_timer = setInterval(change_rate, RATE_CHANGE_INTERVAL*1000);
+//         is_rate_timer = true;
+//     }
+//
+// }
+//
+// function clear_rate_timer() {
+//     if(is_rate_timer === true) {
+//         console.log("clear rate_timer");
+//         clearInterval(rate_timer);
+//         is_rate_timer = false;
+//     }
+// }
