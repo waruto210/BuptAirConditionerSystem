@@ -96,7 +96,7 @@ DATABASES = {
 # 设置日志,存放路径
 # LOG_PATH = 'logs'
 
-BASE_LOG_DIR = os.path.join("/Users/wmc/vscode/django/django-air", "logs")
+BASE_LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 # 设置日志
 LOGGING = {
