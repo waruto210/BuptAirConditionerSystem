@@ -39,6 +39,7 @@ class Ticket(models.Model):
     # 开机 换风速
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
+    duration = models.IntegerField(default=0)
     # 调度成功一次
     schedule_count = models.IntegerField(default=0)
     service_duration = models.IntegerField(default=0)
@@ -86,3 +87,17 @@ class StatisicDay(models.Model):
     ticket_count = models.IntegerField(default=0)
     # 总费用
     total_cost = models.FloatField(default=0)
+
+
+class Record(models.Model):
+    room_id = models.CharField(max_length=20)
+    record_type = models.CharField(max_length=20)
+    # 如果是调目标温度
+    at_time = models.DateTimeField(null=True)
+    duration = models.IntegerField(null=True)
+    goal_temp = models.IntegerField(null=True)
+
+
+def get_current_record(room_id, record_type) -> Record:
+    rs = list(Record.objects.filter(room_id=room_id, record_type=record_type))
+    return rs[-1]
