@@ -1,4 +1,5 @@
 from operator import attrgetter
+from .models import  State
 
 
 class Slave:
@@ -11,6 +12,52 @@ class Slave:
         self.inverse_sp = 2 - sp_mode
         self.temp_rate = 2
         self.wait_timer = False
+
+    def set_curr_temp(self, curr_temp):
+        state = State.objects.get(room_id=self.room_id)
+        state.curr_temp = curr_temp
+        state.save()
+
+    def add_fee(self, delta_fee):
+        state = State.objects.get(room_id=self.room_id)
+        state.total_cost += delta_fee
+        state.save()
+
+    def change_fan_spd(self, sp_mode):
+        state = State.objects.get(room_id=self.room_id)
+        state.sp_mode = sp_mode
+        state.save()
+
+    def change_goal_temp(self, goal_temp):
+        state = State.objects.get(room_id=self.room_id)
+        state.goal_temp = goal_temp
+        state.save()
+
+    def change_work_mode(self, work_mode):
+        state = State.objects.get(room_id=self.room_id)
+        state.work_mode = work_mode
+        state.save()
+
+    def set_is_work(self, is_work):
+        state = State.objects.get(room_id=self.room_id)
+        state.is_work = is_work
+        state.save()
+
+    def get_is_work(self):
+        state = State.objects.get(room_id=self.room_id)
+        return state.is_work
+
+    def get_curr_temp(self):
+        state = State.objects.get(room_id=self.room_id)
+        return state.curr_temp
+
+    def get_goal_temp(self):
+        state = State.objects.get(room_id=self.room_id)
+        return state.goal_temp
+
+    def get_state(self):
+        state = State.objects.get(room_id=self.room_id)
+        return state.curr_temp, state.total_cost, state.is_work
 
     def __repr__(self):
         return repr((self.room_id, self.sp_mode, self.req_time, self.temp_rate, self.wait_timer))

@@ -58,6 +58,8 @@ def power_on(request):
         #     ret['code'] = 1001
         #     ret['msg'] = "当前房间未登记入住"
         #     return JsonResponse(ret)
+
+        logger.info("room_id: " + room_id + "开机")
         r = Record.objects.create(room_id=room_id, record_type='power_on', at_time=datetime.datetime.now())
         r.save()
         state, _ = State.objects.get_or_create(room_id=room_id)
@@ -84,14 +86,6 @@ def power_off(request):
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
 
-        # 确认是否登记入住了
-        # try:
-        #     Customer.objects.get(RoomId=room_id)
-        # except Exception:
-        #     print("here")
-        #     ret['code'] = 1001
-        #     ret['msg'] = "当前房间未登记入住"
-        #     return JsonResponse(ret)
         r = Record.objects.create(room_id=room_id, record_type='power_off', at_time=datetime.datetime.now())
         r.save()
 
@@ -103,16 +97,14 @@ def power_off(request):
         state.is_on = False
         state.is_work = False
         state.save()
+
         ticket = get_current_ticket(room_id, phone_num)
         ticket.end_time = datetime.datetime.now()
+        ticket.duration = int((ticket.end_time - ticket.start_time).total_seconds())
         ticket.save()
         # 删除调度队列中的slave对象
-        machine.lock.acquire()
-        try:
-            machine.delete_if_exists(room_id)
-            machine.wait_to_service()
-        finally:
-            machine.lock.release()
+        logger.info("room_id: " + room_id + "关机")
+        machine.one_room_power_off(room_id)
         ret['data'] = data
         return JsonResponse(ret)
 
@@ -149,15 +141,7 @@ def change_state(request):
                     ticket = create_new_ticket(room_id, phone_num, sp_mode)
             ticket.save()
             # 处理新请求
-            machine.lock.acquire()
-            try:
-                # 删掉旧请求，调度等待队列
-                machine.delete_if_exists(room_id)
-                machine.wait_to_service()
-                # 加入新请求
-                machine.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
-            finally:
-                machine.lock.release()
+            machine.change_fan_spd(room_id=room_id, phone_num=phone_num, sp_mode=sp_mode)
         elif ins == 'change_goal':
             r = get_current_record(room_id=room_id, record_type='goal_temp')
             r.duration = int((datetime.datetime.now() - r.at_time).total_seconds())
@@ -167,17 +151,14 @@ def change_state(request):
             r.save()
 
             logger.info("room_id: " + str(room_id) + " 更改目标温度为: " + str(goal_temp))
-            state = State.objects.get(room_id=room_id)
-            state.goal_temp = goal_temp
-            state.save()
+            machine.change_goal_temp(room_id=room_id, goal_temp=goal_temp)
         elif ins == 'change_mode':
             r = Record.objects.create(room_id=room_id, record_type='change_mode', at_time=datetime.datetime.now())
             r.save()
 
             logger.info("room_id: " + str(room_id) + " 更改温控模式为: " + str(work_mode))
-            state = State.objects.get(room_id=room_id)
-            state.work_mode = work_mode
-            state.save()
+            machine.change_work_mode(room_id=room_id, work_mode=work_mode)
+
         ret = {
             'code': 200,
             'msg': 'ok',
@@ -197,12 +178,9 @@ def poll(request):
         elif pos == 'wait':
             cal_wait_temp(room_id)
         else:
-            cal_pause_temp(room_id, phone_num)
+            cal_pause_temp(room_id)
 
-        state = State.objects.get(room_id=room_id)
-        curr_temp = state.curr_temp
-        total_cost = state.total_cost
-        is_work = state.is_work
+        curr_temp, total_cost, is_work = machine.get_one_room_state(room_id)
         ret = {
             'code': 200,
             'msg': 'ok',
@@ -220,18 +198,11 @@ def pause(request):
     if request.method == 'POST':
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
-        machine.lock.acquire()
         logger.info('room_id: ' + str(room_id) + " 达到目标温度")
         r = Record.objects.create(room_id=room_id, record_type='reach_goal', at_time=datetime.datetime.now())
         r.save()
 
-        try:
-            # 将当前房间加入停止队列
-            machine.move_to_pause(room_id)
-            # 选择一个等待状态的放假加入服务队列
-            machine.wait_to_service()
-        finally:
-            machine.lock.release()
+        machine.one_room_pause(room_id)
         return JsonResponse({'code': 200, 'msg': 'ok'})
 
 
@@ -241,14 +212,8 @@ def re_start(request):
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
         logger.info('room_id:' + str(room_id) + " 温差达到1度")
-        machine.lock.acquire()
-        try:
-            s = machine.delete_pause(room_id)
-            machine.new_request(room_id=s.room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=s.sp_mode)
-        finally:
-            machine.lock.release()
-        state = State.objects.get(room_id=room_id)
-        is_work = state.is_work
+
+        is_work = machine.one_room_restart(room_id, phone_num)
         return JsonResponse({'code': 200, 'msg': 'ok', 'is_work': is_work})
 
 
