@@ -51,7 +51,7 @@
 
             {% for num in cust_list.paginator.page_range%}
                 {%if cust_list.number == num%}
-                    <li class="page-item active"><a class="page-link" href="/manager/index/{{ num }}">{{ num }}</a></li>
+                    <li class="page-item active"><a class="page-link" href="/reception/index/{{ num }}">{{ num }}</a></li>
                 {%else%}
                     <li><a class="page-link" href="/reception/index/?page={{num}}">{{ num }}</a></li>
                 {%endif%}
