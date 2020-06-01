@@ -16,12 +16,12 @@ def login(request):
             auth.login(request, user)
             if user:
                 if user.user_type == 1:
-                    # return render(request, 'manager/index.html', {'user': user})
-                    return redirect("manager/index")
+                    # return render(request, 'reception/index.html', {'user': user})
+                    return redirect("reception/index")
                 elif user.user_type == 2:
                     return render(request, 'adm/index.html', {'user': user})
                 elif user.user_type == 3:
-                    return render(request, 'director/index.html', {'user': user})
+                    return render(request, 'manager/index.html', {'user': user})
     return HttpResponse(request, 'request error')
 
 

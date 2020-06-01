@@ -9,7 +9,7 @@ from master.views import scheduler
 import logging
 
 logger = logging.getLogger('collect')
-CAL_INTERVAL = 5
+CAL_INTERVAL = 3
 WAIT_INTERVAL = 30
 RATE_INTERVAL = 15
 
@@ -354,6 +354,7 @@ class MainMachine:
             return s.get_state()
         finally:
             self.lock.release()
+
 
 machine = MainMachine()
 

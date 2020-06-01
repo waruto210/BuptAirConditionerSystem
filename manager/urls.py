@@ -1,8 +1,7 @@
 from django.urls import path, include
-from .views import index, add, checkout
+from .views import director, forms
 
 urlpatterns = [
-    path('index',index),
-    path('add', add),
-    path('checkout', checkout),
+    path('', director),
+    path('forms', forms)
 ]
