@@ -1,6 +1,7 @@
 from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket
 import datetime
 
+
 class RecordManager:
     @staticmethod
     def add_ticket(room_id, phone_num, sp_mode):
@@ -61,3 +62,12 @@ class RecordManager:
     def add_reach_goal_record(room_id):
         r = Record.objects.create(room_id=room_id, record_type='reach_goal', at_time=datetime.datetime.now())
         r.save()
+
+    @staticmethod
+    def get_report():
+        return
+
+    @staticmethod
+    def get_ddd():
+
+        return

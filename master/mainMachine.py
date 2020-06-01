@@ -74,7 +74,7 @@ class MainMachine:
                               args=[room_id])
         # 修改工作状态
         s.set_is_work(True)
-
+        s.change_fan_spd(sp_mode)
         # 增加一次被调度
         RecordManager.plus_ticket_schedule_count(room_id, phone_num)
         self.service_queue.append(s)
@@ -90,6 +90,7 @@ class MainMachine:
                               args=[room_id])
         # 修改工作状态
         s.set_is_work(False)
+        s.change_fan_spd(sp_mode)
         self.wait_queue.append(s)
 
     def delete_if_exists(self, room_id):
@@ -210,6 +211,7 @@ class MainMachine:
         for item in self.pause_queue:
             if item.room_id == room_id:
                 return item
+        return None
 
     def false_wait_timer(self, room_id):
         for item in self.wait_queue:
@@ -241,7 +243,7 @@ class MainMachine:
         finally:
             self.lock.release()
 
-    def change_fan_spd(self, room_id, phone_num, sp_mode):
+    def change_fan_speed(self, room_id, phone_num, sp_mode):
         self.lock.acquire()
         try:
             # 删掉旧请求，调度等待队列
@@ -318,8 +320,29 @@ class MainMachine:
     def one_room_power_off(self, room_id):
         self.lock.acquire()
         try:
+            s = self.get_slave(room_id)
+            if s is not None:
+                s.set_is_work(False)
+                s.set_is_on(False)
+                s.set_curr_temp(self.env_temp)
             self.delete_if_exists(room_id)
             self.wait_to_service()
+        finally:
+            self.lock.release()
+
+    def one_room_power_on(self, room_id, phone_num, goal_temp, sp_mode, work_mode):
+        self.lock.acquire()
+        try:
+            state, _ = State.objects.get_or_create(room_id=room_id)
+            state.goal_temp = goal_temp
+            state.curr_temp = self.env_temp
+            state.sp_mode = sp_mode
+            state.work_mode = work_mode
+            state.is_on = True
+            state.is_work = False
+            state.save()
+            # 加入新请求
+            self.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
         finally:
             self.lock.release()
 
