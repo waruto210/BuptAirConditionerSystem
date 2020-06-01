@@ -8,6 +8,7 @@ import math
 from master.mainMachine import machine, cal_service_cost_temp, cal_wait_temp, cal_pause_temp, change_temp_rate
 import datetime
 import logging
+from record_manager.RecordManager import  RecordManager
 
 logger = logging.getLogger('collect')
 
@@ -60,8 +61,8 @@ def power_on(request):
         #     return JsonResponse(ret)
 
         logger.info("room_id: " + room_id + "开机")
-        r = Record.objects.create(room_id=room_id, record_type='power_on', at_time=datetime.datetime.now())
-        r.save()
+        RecordManager.add_power_on_record(room_id)
+
         state, _ = State.objects.get_or_create(room_id=room_id)
         state.goal_temp = goal_temp
         state.curr_temp = curr_temp
@@ -86,22 +87,16 @@ def power_off(request):
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
 
-        r = Record.objects.create(room_id=room_id, record_type='power_off', at_time=datetime.datetime.now())
-        r.save()
+        RecordManager.add_power_off_record(room_id)
 
-        r = get_current_record(room_id=room_id, record_type='goal_temp')
-        r.duration = int((datetime.datetime.now() - r.at_time).total_seconds())
-        r.save()
+        RecordManager.finish_goal_temp_record(room_id)
 
         state = State.objects.get(room_id=room_id)
         state.is_on = False
         state.is_work = False
         state.save()
 
-        ticket = get_current_ticket(room_id, phone_num)
-        ticket.end_time = datetime.datetime.now()
-        ticket.duration = int((ticket.end_time - ticket.start_time).total_seconds())
-        ticket.save()
+        RecordManager.finish_ticket(room_id, phone_num)
         # 删除调度队列中的slave对象
         logger.info("room_id: " + room_id + "关机")
         machine.one_room_power_off(room_id)
@@ -123,39 +118,21 @@ def change_state(request):
             logger.info("room_id: " + str(room_id) + " 更改风速为: " + str(sp_mode))
             # 开机后的立即请求,新建ticket
             if pre_sp == -1:
-                r = Record.objects.create(room_id=room_id, record_type='goal_temp', goal_temp=goal_temp, at_time=datetime.datetime.now())
-                r.save()
-                ticket = create_new_ticket(room_id, phone_num, sp_mode)
+                RecordManager.add_goal_temp_record(room_id, goal_temp)
+                RecordManager.add_ticket(room_id, phone_num, sp_mode)
             else:
-                # 否则取当前ticket的单子
-                ticket = get_current_ticket(room_id, phone_num)
-                if ticket.schedule_count == 0:
-                    # 如果上次请求未被调度，则作为新的ticket
-                    ticket.start_time = datetime.datetime.now()
-                    ticket.sp_mode = sp_mode
-                else:
-                    # 保存上次ticket，新建ticket
-                    ticket.end_time = datetime.datetime.now()
-                    ticket.duration = int((ticket.end_time - ticket.start_time).total_seconds())
-                    ticket.save()
-                    ticket = create_new_ticket(room_id, phone_num, sp_mode)
-            ticket.save()
+                RecordManager.finish_ticket(room_id, phone_num)
+                RecordManager.add_ticket(room_id, phone_num, sp_mode)
             # 处理新请求
             machine.change_fan_spd(room_id=room_id, phone_num=phone_num, sp_mode=sp_mode)
         elif ins == 'change_goal':
-            r = get_current_record(room_id=room_id, record_type='goal_temp')
-            r.duration = int((datetime.datetime.now() - r.at_time).total_seconds())
-            r.save()
-
-            r = Record.objects.create(room_id=room_id, record_type='goal_temp', at_time=datetime.datetime.now(), goal_temp=goal_temp)
-            r.save()
+            RecordManager.finish_goal_temp_record(room_id)
+            RecordManager.add_goal_temp_record(room_id, goal_temp)
 
             logger.info("room_id: " + str(room_id) + " 更改目标温度为: " + str(goal_temp))
             machine.change_goal_temp(room_id=room_id, goal_temp=goal_temp)
         elif ins == 'change_mode':
-            r = Record.objects.create(room_id=room_id, record_type='change_mode', at_time=datetime.datetime.now())
-            r.save()
-
+            RecordManager.add_work_mode_record(room_id)
             logger.info("room_id: " + str(room_id) + " 更改温控模式为: " + str(work_mode))
             machine.change_work_mode(room_id=room_id, work_mode=work_mode)
 
@@ -199,8 +176,7 @@ def pause(request):
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
         logger.info('room_id: ' + str(room_id) + " 达到目标温度")
-        r = Record.objects.create(room_id=room_id, record_type='reach_goal', at_time=datetime.datetime.now())
-        r.save()
+        RecordManager.add_reach_goal_record(room_id)
 
         machine.one_room_pause(room_id)
         return JsonResponse({'code': 200, 'msg': 'ok'})

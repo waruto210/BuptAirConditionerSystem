@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'adm',
     'manager',
     'master',
+    'record_manager',
 ]
 
 MIDDLEWARE = [

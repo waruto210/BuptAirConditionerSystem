@@ -7,6 +7,7 @@ import datetime
 import math
 from master.views import scheduler
 import logging
+from record_manager.RecordManager import RecordManager
 
 logger = logging.getLogger('collect')
 CAL_INTERVAL = 3
@@ -75,10 +76,7 @@ class MainMachine:
         s.set_is_work(True)
 
         # 增加一次被调度
-        ticket = get_current_ticket(room_id, phone_num)
-        ticket.schedule_count += 1
-        ticket.save()
-
+        RecordManager.plus_ticket_schedule_count(room_id, phone_num)
         self.service_queue.append(s)
 
     def add_wait(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, timer=True):
@@ -273,10 +271,7 @@ class MainMachine:
             # 记录温度和费用
             s.set_curr_temp(curr_temp)
             s.add_fee(delta_fee)
-            ticket = get_current_ticket(room_id, phone_num)
-            ticket.cost += delta_fee
-            ticket.service_duration += CAL_INTERVAL
-            ticket.save()
+            RecordManager.plus_ticket_cost(room_id, phone_num, delta_fee, CAL_INTERVAL)
         finally:
             self.lock.release()
 
