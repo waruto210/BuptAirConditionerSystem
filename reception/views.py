@@ -22,10 +22,10 @@ def index(request):
         return render(request, 'reception/index.html', {"cust_list": cust_list})
 
 @login_required(login_url="/login")
-def add(request):
+def checkin(request):
     if request.method == 'GET':
         print(request.user)
-        return render(request, 'reception/add.html')
+        return render(request, 'reception/checkin.html')
     if request.method == 'POST':
         customer_name = request.POST.get('c_name',None)
         room_id = request.POST.get('r_id',None)

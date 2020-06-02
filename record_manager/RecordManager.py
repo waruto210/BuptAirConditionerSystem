@@ -61,3 +61,7 @@ class RecordManager:
     def add_reach_goal_record(room_id):
         r = Record.objects.create(room_id=room_id, record_type='reach_goal', at_time=datetime.datetime.now())
         r.save()
+
+    @staticmethod
+    def get_rdd():
+        pass
