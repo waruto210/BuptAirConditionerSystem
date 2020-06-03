@@ -1,8 +1,8 @@
 from django.urls import path, include
-from .views import index, add, checkout
+from .views import index, checkin, checkout
 
 urlpatterns = [
     path('index',index),
-    path('add', add),
+    path('checkin', checkin),
     path('checkout', checkout),
 ]

@@ -1,37 +1,62 @@
 from django.db import models
 import datetime
 
+
 # Create your models here.
 class Customer(models.Model):
+    """
+        Customer 模型，
+        Name 姓名
+        RoomId 房间号
+        PhoneNum 手机号
+    """
     Name = models.CharField(max_length=50)
     RoomId = models.CharField(max_length=20)
-
+    PhoneNum = models.CharField(max_length=20)
+    CheckinDate = models.DateTimeField()
+    CheckoutDate = models.DateTimeField(null=True)
     def __str__(self):
         return "房间号: " + self.RoomId + "   " + self.Name
 
 
 class State(models.Model):
+    """
+        State 房间状态类
+    """
     room_id = models.CharField(max_length=20, primary_key=True)
-    # RoomId = models.ForeignKey('Customer',on_delete=models.CASCADE)
-    is_on = models.BooleanField(default=False)
-    is_work = models.BooleanField(default=False)
+    busy = models.BooleanField(default=False) # 入住状态
+    is_on = models.BooleanField(default=False) # 开关机状态
+    is_work = models.BooleanField(default=False) # 送风状态
     choice1 = (
         (1, 'hot'),
         (0, 'cold'),
     )
-    work_mode = models.IntegerField(choices=choice1, null=True)
+    work_mode = models.IntegerField(choices=choice1, null=True) # 工作模式
     choice2 = (
         (0, 'low'),
         (1, 'middle'),
         (2, 'high'),
     )
-    sp_mode = models.IntegerField(choices=choice2, null=True)
-    goal_temp = models.IntegerField(null=True)
-    curr_temp = models.FloatField(null=True)
-    total_cost = models.FloatField(default=0)
+    sp_mode = models.IntegerField(choices=choice2, null=True) # 风速
+    goal_temp = models.IntegerField(null=True) # 目标温度
+    curr_temp = models.FloatField(null=True) # 当前温度
+    total_cost = models.FloatField(default=0) # 总花费
+
+def init_state(state: State):
+    state.busy = False
+    state.is_on = False
+    state.is_work = False
+    state.work_mode = None
+    state.sp_mode = None
+    state.goal_temp = None
+    state.curr_temp = None
+    state.total_cost = 0.
 
 
 class Ticket(models.Model):
+    """
+        Ticket 详单类
+    """
     room_id = models.CharField(max_length=20)
     phone_num = models.CharField(max_length=20)
     ticket_id = models.IntegerField(default=0)
@@ -63,6 +88,10 @@ def create_new_ticket(room_id, phone_num, sp_mode) -> Ticket:
     ticket = Ticket.objects.create(room_id=room_id, phone_num=phone_num, ticket_id=length+1,
                                    start_time=datetime.datetime.now(), sp_mode=sp_mode)
     return ticket
+
+
+def get_all_ticket(room_id, phone_num):
+    return Ticket.objects.filter(room_id=room_id,phone_num=phone_num)
 
 
 class StatisicDay(models.Model):

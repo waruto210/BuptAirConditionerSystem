@@ -1,5 +1,6 @@
-from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket
+from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket, get_all_ticket
 import datetime
+
 
 class RecordManager:
     @staticmethod
@@ -63,5 +64,15 @@ class RecordManager:
         r.save()
 
     @staticmethod
-    def get_rdd():
-        pass
+    def calc_bill(room_id,phone_num):
+        tickets = list(Ticket.objects.filter(room_id=room_id,phone_num=phone_num))
+        total_cost = 0.
+        total_use = 0
+        for ticket in tickets:
+            total_cost += ticket.cost
+            total_use += ticket.duration
+        return total_cost, total_use
+
+    @staticmethod
+    def get_tickets(room_id,phone_num):
+        return list(get_all_ticket(room_id,phone_num))

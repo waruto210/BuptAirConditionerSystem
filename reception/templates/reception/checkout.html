@@ -22,13 +22,63 @@
 
 {% block page-wrapper %}
     <div class="card" style="margin:0 auto;width: 18rem;">
-      <div class="card-header">
-        <p align="center"><b>消费账单</b></p>
-      </div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">房间号: 001</li>
-        <li class="list-group-item">客户姓名: SKT Otto</li>
-        <li class="list-group-item">消费: 4396</li>
-      </ul>
+        <div class="card-body">
+            <h5 class="card-title">退房成功！</h5>
+            <h6 class="card-subtitle mb-2 text-muted">感谢您的光临~</h6>
+            <p class="card-text">318戴戴大班长酒店欢迎您下次再来。您可以在下面选择打印详单或者账单</p>
+        </div>
+        <div class="card-footer">
+            <a class="btn btn-primary" data-toggle="collapse" href="#tickets-collapse" role="button" aria-expanded="false" aria-controls="tickets-collapse">显示/关闭详单</a>
+            <br>
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#bill-collapse" aria-expanded="false" aria-controls="bill-collapse">显示/关闭账单</button>
+            <br>
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="tickets-collapse bill-collapse">显示/关闭详单&账单</button>
+        </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <div class="collapse multi-collapse" id="tickets-collapse">
+          <div class="card card-body">
+            <div class="card-title">
+                <h5 class="card-title">消费详单</h5>
+            </div>
+            {% with tickets|first as first %}
+                <h3>房间号: {{ first.room_id }}</h3>
+                <h3>手机号: {{ first.phone_num }}</h3>
+                <br><br>
+            {% endwith %}
+              {% for ticket in tickets %}
+                  <p>id: {{ ticket.ticket_id }}</p>
+                  <p><b>开始时间: </b>{{ ticket.start_time }}</p>
+                  <p><b>结束时间: </b>{{ ticket.end_time }}</p>
+                  <p><b>持续时间: </b>{{ ticket.duration }}</p>
+                  <p><b>空调调度成功次数: </b>{{ ticket.schedule_count }}</p>
+                  <p><b>风速模式: </b>{{ ticket.sp_mode }}</p>
+                  <p><b>送风时间: </b>{{ ticket.service_duration }}</p>
+                  <p><b>计费金额: </b>{{ ticket.cost }}</p>
+                  <br><br>
+              {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="collapse multi-collapse" id="bill-collapse">
+          <div class="card card-body">
+                <div class="card-title">
+                    <h5 class="card-title">消费账单</h5>
+                </div>
+                <h3>房间号: {{ bill.room_id }}</h3>
+                <h3>手机号: {{ bill.phone_num }}</h3>
+                <br><br>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><b>入住时间</b>: {{ bill.checkin_date }}</li>
+                    <li class="list-group-item"><b>退房时间</b>: {{ bill.checkout_date }}</li>
+                    <li class="list-group-item"><b>空调使用时间</b>: {{ bill.total_use }}秒</li>
+                    <li class="list-group-item"><b>空调总费用</b>: {{ bill.total_cost }}</li>
+                </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
 {% endblock page-wrapper %}

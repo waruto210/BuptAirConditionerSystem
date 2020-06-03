@@ -34,28 +34,47 @@
 {% endblock navibar %}
 
 {% block page-wrapper %}
+    {% if context %}
+        {% if context.type == "success" %}
+            <div class="alert alert-success alert-dismissable">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                【成功】：{{ context.message }}
+                <a href="/reception/index" class="alert-link">返回主界面</a>
+            </div>
+        {% endif %}
+        {% if context.type == "error" %}
+            <div class="alert alert-danger alert-dismissable">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                【错误】：{{ context.message }}
+                <a href="/reception/checkin" class="alert-link">重新输入</a>
+            </div>
+        {% endif %}
+    {% endif %}
     <div class="check-in-form">
-        <form action="/reception/add" method="post">
-          <div class="form-row align-items-center">
-              {% csrf_token %}
-            <div class="col-auto">
-              <label class="sr-only" for="inlineFormInput">Name</label>
-              <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Customer Name" name="c_name">
-            </div>
-            <div class="col-auto">
-              <label class="sr-only" for="inlineFormInputGroup">RoomID</label>
-              <div class="input-group mb-2">
-                <div class="input-group-prepend">
-                  <div class="input-group-text">@</div>
-                </div>
-                <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="RoomId" name="r_id">
+        <form action="/reception/checkin" method="post">
+              <div class="form-row align-items-center">
+                  {% csrf_token %}
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInput">Name</label>
+                      <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Customer Name" name="c_name">
+                  </div>
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInput">PhoneNum</label>
+                      <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Phone Number" name="phone_num">
+                  </div>
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInputGroup">RoomID</label>
+                      <div class="input-group mb-2">
+                          <div class="input-group-prepend">
+                              <div class="input-group-text">@</div>
+                          </div>
+                          <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="RoomId" name="r_id">
+                      </div>
+                  </div>
+                  <div class="col-auto">
+                      <button type="submit" class="btn btn-primary mb-2">入住</button>
+                  </div>
               </div>
-            </div>
-            <div class="col-auto">
-              <button type="submit" class="btn btn-primary mb-2">入住</button>
-            </div>
-          </div>
         </form>
-
     </div>
 {% endblock page-wrapper %}

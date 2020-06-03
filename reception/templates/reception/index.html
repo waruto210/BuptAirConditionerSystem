@@ -9,7 +9,7 @@
         </a>
     </li>
     <li class="treeview">
-        <a href="/reception/add">
+        <a href="/reception/checkin">
             <i class="fa fa-dashboard"></i> <span>客户入住</span>
         </a>
     </li>
@@ -28,16 +28,20 @@
           <th scope="col">#</th>
           <th scope="col">RoomId</th>
           <th scope="col">Customer_Name</th>
+          <th scope="col">Phone_Number</th>
+          <th scope="col">Checkin_Date</th>
           <th scope="col">Checkout</th>
         </tr>
       </thead>
       <tbody>
       {%for item in cust_list%}
             <tr>
-                <td width="120px">{{forloop.counter}}</td>
+                <td width="100px">{{forloop.counter}}</td>
                 <td width="150px"><a href="" style="color: #0f0f0f">{{ item.RoomId }}</a></td>
                 <td width="200px">{{ item.Name }}</td>
-                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}">checkout</a></td>
+                <td width="200px">{{ item.PhoneNum }}</td>
+                <td width="250px">{{ item.CheckinDate }}</td>
+                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}&phone_num={{ item.PhoneNum }}">checkout</a></td>
             </tr>
         {%endfor%}
     </table>
