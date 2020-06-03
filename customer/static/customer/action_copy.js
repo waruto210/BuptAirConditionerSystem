@@ -1,10 +1,6 @@
-let POWER_ON = "power_on", POWER_OFF = "power_off", CHANGE_SP = "change_sp", CHANGE_MODE = "change_mode", CHANGE_GOAL = "change_goal";
 let HEART_BEAT = "heart_beat";
-let RATE_CHANGE_INTERVAL = 20;
 let HEART_BEAT_INTERVAL = 3;
 
-let rate_timer = null;
-let is_rate_timer = false;
 let is_pause = false;
 let is_temp_change_timer = false;
 let is_spmode_change_timer = false;
@@ -20,7 +16,6 @@ let env_temp;
 let work_mode;
 // 风速模式
 let sp_mode;
-let pre_sp = -1;
 // 客户信息
 let room_id = null;
 let phone_num = null;
@@ -162,7 +157,6 @@ $(document).ready(function() {
         }
         if( power_on === true ) {
             enaButton();
-            changeState(CHANGE_SP);
             // 心跳
             timer = setInterval(poll, HEART_BEAT_INTERVAL*1000);
             $air_state.text("已开机");
@@ -171,7 +165,6 @@ $(document).ready(function() {
             curr_temp = env_temp;
             $curr_temp.text(curr_temp);
             disButton();
-            pre_sp = -1;
             $air_state.text("已经关机");
         }
     });
@@ -187,7 +180,7 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "sun.png"
                 $pic_mode.attr("src", tmp.join("/"));
                 work_mode = 1;
-                changeState(CHANGE_MODE);
+                changeWorkMode();
             }
         } else {
             if(goal_temp > cold_sup) {
@@ -196,7 +189,7 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "snow.png"
                 $pic_mode.attr("src", tmp.join("/"));
                 work_mode = 0;
-                changeState(CHANGE_MODE);
+                changeWorkMode();
             }
         }
 
@@ -216,7 +209,7 @@ $(document).ready(function() {
                 is_temp_change_timer = true;
                 setTimeout(function () {
                     is_temp_change_timer = false;
-                    changeState(CHANGE_GOAL);
+                    changeGoalTemp();
                 }, 1000);
             }
         }
@@ -236,7 +229,7 @@ $(document).ready(function() {
                 is_temp_change_timer = true;
                 setTimeout(function () {
                     is_temp_change_timer = false;
-                    changeState(CHANGE_GOAL);
+                    changeGoalTemp();
                 }, 1000);
             }
         }
@@ -245,17 +238,14 @@ $(document).ready(function() {
     $spd_btn.on("click", function() {
         if(sp_mode === 0){
             $speed.text("中风");
-            pre_sp = sp_mode;
             sp_mode++;
             //clear_rate_timer();
         }else if(sp_mode === 1){
             $speed.text("高风");
-            pre_sp = sp_mode;
             sp_mode++;
             //set_rate_timer();
         } else {
             $speed.text("低风");
-            pre_sp = sp_mode;
             sp_mode = 0;
             //clear_rate_timer();
             //set_rate_timer();
@@ -265,27 +255,12 @@ $(document).ready(function() {
             is_spmode_change_timer = true;
             setTimeout(function () {
                 is_spmode_change_timer = false;
-                changeState(CHANGE_SP);
+                changeFanSpeed();
             }, 1000);
         }
     });
 });
-function change_rate() {
-    console.log("change rate");
-    $.ajax({
-        'url': 'change_rate',
-        type: 'POST',
-        dataType: 'JSON',
-        data: {
-            'room_id': room_id,
-        },
-        success: function (ret) {
-            if(ret.code !== 200) {
-                console.log(ret.msg);
-            }
-        }
-    })
-}
+
 
 function poll() {
     console.log(HEART_BEAT);
@@ -362,20 +337,49 @@ function re_start() {
     })
 }
 
-function changeState(INS) {
-    console.log(INS);
+function changeFanSpeed() {
+    console.log("changeFanSpeed");
     $.ajax({
-        url: 'change_state',
+        url: 'change_fan_speed',
         type: 'POST',
         dataType: 'JSON',
         data: {
-            'ins': INS,
             'room_id': room_id,
             'phone_num': phone_num,
             'sp_mode': sp_mode,
-            'pre_sp': pre_sp,
-            'work_mode': work_mode,
+        },
+        success: function (ret) {
+            console.log(ret)
+        }
+    })
+}
+
+
+function changeGoalTemp() {
+    console.log("changeGoalTemp");
+    $.ajax({
+        url: 'change_goal_temp',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
             'goal_temp': goal_temp,
+        },
+        success: function (ret) {
+            console.log(ret)
+        }
+    })
+}
+
+function changeWorkMode() {
+    console.log("changeWorkMode");
+    $.ajax({
+        url: 'change_work_mode',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
+            'work_mode': work_mode,
         },
         success: function (ret) {
             console.log(ret)
@@ -418,7 +422,6 @@ function postPowerOn() {
             'sp_mode': sp_mode,
             'work_mode': work_mode,
             'goal_temp': goal_temp,
-            'curr_temp': curr_temp,
         },
         success: function (ret) {
             if (ret.code !== 200) {

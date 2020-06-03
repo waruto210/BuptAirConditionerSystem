@@ -48,7 +48,6 @@ def power_on(request):
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
         goal_temp = int(request.POST.get('goal_temp', None))
-        curr_temp = int(request.POST.get('curr_temp', None))
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = int(request.POST.get('work_mode', None))
         # 确认是否登记入住了
@@ -63,14 +62,10 @@ def power_on(request):
         logger.info("room_id: " + room_id + "开机")
         RecordManager.add_power_on_record(room_id)
 
-        state, _ = State.objects.get_or_create(room_id=room_id)
-        state.goal_temp = goal_temp
-        state.curr_temp = curr_temp
-        state.sp_mode = sp_mode
-        state.work_mode = work_mode
-        state.is_on = True
-        state.is_work = False
-        state.save()
+        # 新建ticket和record
+        RecordManager.add_goal_temp_record(room_id, goal_temp)
+        RecordManager.add_ticket(room_id, phone_num, sp_mode)
+        machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
 
         ret['data'] = data
         return JsonResponse(ret)
@@ -91,11 +86,6 @@ def power_off(request):
 
         RecordManager.finish_goal_temp_record(room_id)
 
-        state = State.objects.get(room_id=room_id)
-        state.is_on = False
-        state.is_work = False
-        state.save()
-
         RecordManager.finish_ticket(room_id, phone_num)
         # 删除调度队列中的slave对象
         logger.info("room_id: " + room_id + "关机")
@@ -105,36 +95,16 @@ def power_off(request):
 
 
 @csrf_exempt
-def change_state(request):
+def change_fan_speed(request):
     if request.method == 'POST':
-        ins = request.POST.get('ins', None)
         room_id = request.POST.get('room_id', None)
         phone_num = request.POST.get('phone_num', None)
-        goal_temp = int(request.POST.get('goal_temp', None))
-        work_mode = int(request.POST.get('work_mode', None))
-        if ins == 'change_sp':
-            pre_sp = int(request.POST.get('pre_sp', None))
-            sp_mode = int(request.POST.get('sp_mode', None))
-            logger.info("room_id: " + str(room_id) + " 更改风速为: " + str(sp_mode))
-            # 开机后的立即请求,新建ticket
-            if pre_sp == -1:
-                RecordManager.add_goal_temp_record(room_id, goal_temp)
-                RecordManager.add_ticket(room_id, phone_num, sp_mode)
-            else:
-                RecordManager.finish_ticket(room_id, phone_num)
-                RecordManager.add_ticket(room_id, phone_num, sp_mode)
-            # 处理新请求
-            machine.change_fan_spd(room_id=room_id, phone_num=phone_num, sp_mode=sp_mode)
-        elif ins == 'change_goal':
-            RecordManager.finish_goal_temp_record(room_id)
-            RecordManager.add_goal_temp_record(room_id, goal_temp)
-
-            logger.info("room_id: " + str(room_id) + " 更改目标温度为: " + str(goal_temp))
-            machine.change_goal_temp(room_id=room_id, goal_temp=goal_temp)
-        elif ins == 'change_mode':
-            RecordManager.add_work_mode_record(room_id)
-            logger.info("room_id: " + str(room_id) + " 更改温控模式为: " + str(work_mode))
-            machine.change_work_mode(room_id=room_id, work_mode=work_mode)
+        sp_mode = int(request.POST.get('sp_mode', None))
+        logger.info("room_id: " + str(room_id) + " 更改风速为: " + str(sp_mode))
+        RecordManager.finish_ticket(room_id, phone_num)
+        RecordManager.add_ticket(room_id, phone_num, sp_mode)
+        # 处理新请求
+        machine.change_fan_speed(room_id=room_id, phone_num=phone_num, sp_mode=sp_mode)
 
         ret = {
             'code': 200,
@@ -143,6 +113,37 @@ def change_state(request):
         }
         return JsonResponse(ret)
 
+@csrf_exempt
+def change_goal_temp(request):
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id', None)
+        goal_temp = int(request.POST.get('goal_temp', None))
+
+        RecordManager.finish_goal_temp_record(room_id)
+        RecordManager.add_goal_temp_record(room_id, goal_temp)
+        logger.info("room_id: " + str(room_id) + " 更改目标温度为: " + str(goal_temp))
+        machine.change_goal_temp(room_id=room_id, goal_temp=goal_temp)
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+            'data': {},
+        }
+        return JsonResponse(ret)
+
+@csrf_exempt
+def change_work_mode(request):
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id', None)
+        work_mode = int(request.POST.get('work_mode', None))
+        RecordManager.add_work_mode_record(room_id)
+        logger.info("room_id: " + str(room_id) + " 更改温控模式为: " + str(work_mode))
+        machine.change_work_mode(room_id=room_id, work_mode=work_mode)
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+            'data': {},
+        }
+        return JsonResponse(ret)
 
 @csrf_exempt
 def poll(request):
