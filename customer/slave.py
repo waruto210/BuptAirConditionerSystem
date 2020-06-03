@@ -13,6 +13,16 @@ class Slave:
         self.temp_rate = 2
         self.wait_timer = False
 
+    def init_state(self, room_id, goal_temp, curr_temp, sp_mode, work_mode):
+        state, _ = State.objects.get_or_create(room_id=room_id)
+        state.goal_temp = goal_temp
+        state.curr_temp = curr_temp
+        state.sp_mode = sp_mode
+        state.work_mode = work_mode
+        state.is_on = True
+        state.is_work = False
+        state.save()
+
     def set_curr_temp(self, curr_temp):
         state = State.objects.get(room_id=self.room_id)
         state.curr_temp = curr_temp
@@ -36,6 +46,11 @@ class Slave:
     def change_work_mode(self, work_mode):
         state = State.objects.get(room_id=self.room_id)
         state.work_mode = work_mode
+        state.save()
+
+    def set_is_on(self, is_on):
+        state = State.objects.get(room_id=self.room_id)
+        state.is_on = is_on
         state.save()
 
     def set_is_work(self, is_work):

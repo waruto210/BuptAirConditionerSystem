@@ -64,6 +64,7 @@ class Ticket(models.Model):
     # 开机 换风速
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
+    # 风速持续总时间
     duration = models.IntegerField(default=0)
     # 调度成功一次
     schedule_count = models.IntegerField(default=0)

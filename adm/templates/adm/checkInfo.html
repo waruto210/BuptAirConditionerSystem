@@ -1,14 +1,15 @@
 {% extends 'adm/index.html' %}
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
 
-{% block content %}
 
+
+{% block page-wrapper %}
+<div class="-simple-chart-holder" style="margin:auto" >
     <table id="tb" class="table" width="30px">
   <thead class="thead-dark">
     <tr>
@@ -48,13 +49,22 @@
   </tbody>
 </table>
 
-{#<input type="button" onclick="cell()"#}
-{#value="Alert first cell">#}
+</div>
+<div>请输入要查看的房间号:<input type="text" name="fname" id="checkroom"/></div>
+
+
+
 
     <script type="text/javascript">
      /**
 	  * JavaScript遍历table
 	  */
+     function checkinfo(){
+         var a = document.getElementById("checkroom");
+         alert(a.value);
+
+     }
+
      function eachTableRow()
 	 {
 		 //获取table序号
@@ -74,6 +84,52 @@
 	 }
 </script>
     <input type="button" value="遍历" onclick="eachTableRow()"/>
+    <input type="button" value="查询" onclick="checkinfo()">
+{% endblock page-wrapper %}
+
+
+<!--{% block content %}-->
+
+<!--    <table id="tb" class="table" width="30px">-->
+<!--  <thead class="thead-dark">-->
+<!--    <tr>-->
+<!--        <th scope="col">Room_id</th>-->
+<!--        <th scope="col">空调状态(开/关)</th>-->
+<!--        <th scope="col">目标温度</th>-->
+<!--        <th scope="col">当前温度</th>-->
+<!--        <th scope="col">空调风速</th>-->
+<!--        <th scope="col">空调模式</th>-->
+<!--    </tr>-->
+<!--  </thead>-->
+<!--  <tbody>-->
+<!--    <tr>-->
+<!--        <th scope="row">642</th>-->
+<!--        <td>开</td>-->
+<!--        <td>26</td>-->
+<!--        <td>31</td>-->
+<!--        <td>1</td>-->
+<!--        <td>制冷</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <th scope="row">643</th>-->
+<!--        <td>开</td>-->
+<!--        <td>19</td>-->
+<!--        <td>26</td>-->
+<!--        <td>3</td>-->
+<!--        <td>制冷</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <th scope="row">644</th>-->
+<!--        <td>关</td>-->
+<!--        <td>xxx</td>-->
+<!--        <td>24</td>-->
+<!--        <td>xxx</td>-->
+<!--        <td>xxx</td>-->
+<!--    </tr>-->
+<!--  </tbody>-->
+<!--</table>-->
+
+
 {% endblock content %}
 
 </body>
