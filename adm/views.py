@@ -8,17 +8,18 @@ from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def set_params(request):
     if request.method == 'POST':
-        work_mode = request.POST.get('work_mode', None)
-        env_temp = request.POST.get('env_temp', None)
-        cold_sub = request.POST.get('cold_sub', None)
-        cold_sup = request.POST.get('cold_sup', None)
-        hot_sub = request.POST.get('hot_sub', None)
-        hot_sup = request.POST.get('hot_sup', None)
-        fee = request.POST.get('fee', None)
-        max_run = request.POST.get('max_run', None)
-
+        work_mode = int(request.POST.get('work_mode', None))
+        env_temp = int(request.POST.get('env_temp', None))
+        cold_sub = int(request.POST.get('cold_sub', None))
+        cold_sup = int(request.POST.get('cold_sup', None))
+        hot_sub = int(request.POST.get('hot_sub', None))
+        hot_sup = int(request.POST.get('hot_sup', None))
+        fee = int(request.POST.get('fee', None))
+        print(type(fee))
+        max_run = int(request.POST.get('max_run', None))
+        print(work_mode,env_temp,cold_sub)
         machine.set_params(word_mode=work_mode, env_temp=env_temp, cold_sub=cold_sub, cold_sup=cold_sup,
-                           hot_sub=hot_sub, hot_sup=hot_sup, fee=fee, max_run=max_run)
+hot_sub=hot_sub, hot_sup=hot_sup, fee=fee, max_run=max_run)
         return JsonResponse({'code': '200', 'msg': 'ok'})
 
 
