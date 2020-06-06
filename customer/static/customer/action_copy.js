@@ -81,7 +81,7 @@ function setParams() {
                 cold_sup = data.cold_sup;
                 hot_sub = data.hot_sub;
                 hot_sup = data.hot_sup;
-                goal_temp = 25;
+                goal_temp = 26;
                 setInitState();
                 disButton();
             }
@@ -159,7 +159,6 @@ $(document).ready(function() {
             enaButton();
             // 心跳
             timer = setInterval(poll, HEART_BEAT_INTERVAL*1000);
-            $air_state.text("已开机");
         } else {
             clearInterval(timer);
             curr_temp = env_temp;
@@ -429,7 +428,16 @@ function postPowerOn() {
             } else {
                 console.log("poweron: ", ret);
                 data = ret.data;
+                if(data.is_work === 1) {
+                    $air_state.text("送风中");
+                } else {
+                    $air_state.text("等待中");
+                }
                 power_on = true;
+                if(curr_temp === goal_temp) {
+                    is_pause = true;
+                    pause();
+                }
             }
         },
         error: function (err) {

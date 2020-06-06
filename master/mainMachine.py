@@ -343,6 +343,7 @@ class MainMachine:
             s.change_goal_temp(goal_temp)
             s.set_curr_temp(self.env_temp)
             s.change_work_mode(work_mode)
+            return s.get_is_work()
         finally:
             self.lock.release()
 

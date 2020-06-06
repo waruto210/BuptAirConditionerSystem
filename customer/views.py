@@ -64,7 +64,7 @@ def power_on(request):
         # 新建ticket和record
         RecordManager.add_goal_temp_record(room_id, goal_temp)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
-        machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
+        data['is_work'] = machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
 
         ret['data'] = data
         return JsonResponse(ret)
