@@ -165,7 +165,7 @@ $(document).ready(function() {
             curr_temp = env_temp;
             $curr_temp.text(curr_temp);
             disButton();
-            $air_state.text("已经关机");
+            $air_state.text("已关机");
         }
     });
 
@@ -275,21 +275,21 @@ function poll() {
         success: function (ret) {
             console.log(ret.data);
             let data = ret.data;
-            if (data.is_work === false) {
-                $air_state.text('未送风');
-                //clear_rate_timer();
-            } else {
+            $air_state.text(data.is_work);
+            if (data.is_work === 1) {
                 $air_state.text('送风中');
-                if(sp_mode !== 1) {
-                    //set_rate_timer();
-                }
+                is_pause = false;
+            } else if(data.is_work === 0) {
+                $air_state.text('等待中');
+            } else {
+                $air_state.text('待机中');
             }
             curr_temp = data.curr_temp;
             total_cost = data.total_cost;
             $curr_temp.text(curr_temp.toFixed(2));
             $total_cost.text(total_cost.toFixed(2));
             // 达到目标温度，主动请求停止送风
-            if(Math.abs(curr_temp  - goal_temp) < 1e-5 && data.is_work === true) {
+            if(Math.abs(curr_temp  - goal_temp) < 1e-5 && data.is_work === 1) {
                 is_pause = true;
                 pause();
             } else if(Math.abs(curr_temp - goal_temp) > 0.999 && is_pause === true) {
@@ -314,7 +314,7 @@ function pause() {
                 console.log(ret.msg);
                 return
             }
-            $air_state.text("未送风");
+            $air_state.text("待机中");
         }
     })
 }

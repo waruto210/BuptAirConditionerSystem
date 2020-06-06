@@ -15,6 +15,7 @@ class Customer(models.Model):
     PhoneNum = models.CharField(max_length=20)
     CheckinDate = models.DateTimeField()
     CheckoutDate = models.DateTimeField(null=True)
+
     def __str__(self):
         return "房间号: " + self.RoomId + "   " + self.Name
 
@@ -26,26 +27,32 @@ class State(models.Model):
     room_id = models.CharField(max_length=20, primary_key=True)
     busy = models.BooleanField(default=False) # 入住状态
     is_on = models.BooleanField(default=False) # 开关机状态
-    is_work = models.BooleanField(default=False) # 送风状态
     choice1 = (
+        (0, '等待中'),
+        (1, '送风中'),
+        (2, '待机中'),
+    )
+    is_work = models.IntegerField(choices=choice1, null=True) # 送风状态
+    choice2 = (
         (1, 'hot'),
         (0, 'cold'),
     )
-    work_mode = models.IntegerField(choices=choice1, null=True) # 工作模式
-    choice2 = (
+    work_mode = models.IntegerField(choices=choice2, null=True) # 工作模式
+    choice3 = (
         (0, 'low'),
         (1, 'middle'),
         (2, 'high'),
     )
-    sp_mode = models.IntegerField(choices=choice2, null=True) # 风速
+    sp_mode = models.IntegerField(choices=choice3, null=True) # 风速
     goal_temp = models.IntegerField(null=True) # 目标温度
     curr_temp = models.FloatField(null=True) # 当前温度
     total_cost = models.FloatField(default=0) # 总花费
 
+
 def init_state(state: State):
     state.busy = False
     state.is_on = False
-    state.is_work = False
+    state.is_work = None
     state.work_mode = None
     state.sp_mode = None
     state.goal_temp = None
