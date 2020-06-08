@@ -1,14 +1,13 @@
 from operator import attrgetter
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import Customer, State, Ticket, StatisicDay, create_new_ticket, get_current_ticket, Record, get_current_record
-import time
+from .models import Customer, State, init_state
 from django.views.decorators.csrf import csrf_exempt
 import math
 from master.mainMachine import machine, cal_service_cost_temp, cal_wait_temp, cal_pause_temp, change_temp_rate
 import datetime
 import logging
-from record_manager.RecordManager import  RecordManager
+from record_manager.RecordManager import RecordManager
 
 logger = logging.getLogger('collect')
 
@@ -33,7 +32,7 @@ def get_default(request):
         data['env_temp'] = params[6]
 
         ret['data'] = data
-        print('ret is: ', ret)
+        logger.info('default params is: ' + str(ret))
         return JsonResponse(ret)
 
 
@@ -51,13 +50,13 @@ def power_on(request):
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = int(request.POST.get('work_mode', None))
         # 确认是否登记入住了
-        # try:
-        #     Customer.objects.get(RoomId=room_id)
-        # except Exception:
-        #     print("here")
-        #     ret['code'] = 1001
-        #     ret['msg'] = "当前房间未登记入住"
-        #     return JsonResponse(ret)
+        try:
+            Customer.objects.get(RoomId=room_id, PhoneNum=phone_num)
+        except Exception:
+            logger.info('Can\'t find customer')
+            ret['code'] = 1001
+            ret['msg'] = "当前房间及对应手机号未在前台登记，是否输入错误？"
+            return JsonResponse(ret)
 
         logger.info("room_id: " + room_id + "开机")
         RecordManager.add_power_on_record(room_id)
@@ -65,7 +64,7 @@ def power_on(request):
         # 新建ticket和record
         RecordManager.add_goal_temp_record(room_id, goal_temp)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
-        machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
+        data['is_work'] = machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
 
         ret['data'] = data
         return JsonResponse(ret)

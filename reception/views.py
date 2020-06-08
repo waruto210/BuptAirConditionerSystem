@@ -50,7 +50,7 @@ def checkout(request):
     if request.method == 'GET':
         room_id = request.GET.get('room_id')
         phone_num = request.GET.get('phone_num')
-        bill = create_bill(room_id,phone_num)
+        bill = create_bill(room_id, phone_num)
         bill_context = print_bill(bill)
         ticket_list = get_tickets(room_id,phone_num)
         return render(request, 'reception/checkout.html', context={"bill":bill_context,"tickets":ticket_list})
