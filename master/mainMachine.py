@@ -56,6 +56,13 @@ class MainMachine:
         finally:
             self.lock.release()
 
+    def init_default(self, is_on):
+        self.lock.acquire()
+        try:
+            self.power_on = is_on
+        finally:
+            self.lock.release()
+
     def set_params(self, word_mode, cold_sub, cold_sup,
                    hot_sub, hot_sup, env_temp, fee, max_run):
         self.lock.acquire()

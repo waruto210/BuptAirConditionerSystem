@@ -27,20 +27,23 @@ def set_params(request):
                            hot_sub=hot_sub, hot_sup=hot_sup, fee=fee, max_run=max_run)
         return JsonResponse({'code': '200', 'msg': 'ok'})
 
-<<<<<<< HEAD
+
 @csrf_exempt
-=======
 
 @csrf_exempt
 @login_required(login_url="/login")
->>>>>>> cee3d5dc0c4304741fb27ea3bf1f7527cc1a13fc
 def adm(request):
     if request.method == 'GET':
-        print('get!')
         return render(request, "adm/index.html")
     if request.method == 'POST':
         opened = request.POST.getlist('opened')
         print(opened)
+        if opened[0] == "on":
+            machine.init_default(is_on=True)
+        elif opened[0] == "off":
+            machine.init_default(is_on=False)
+        ion = machine.is_on()
+        print(ion)
         return 'success'
 
 @csrf_exempt
