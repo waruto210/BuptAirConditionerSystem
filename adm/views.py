@@ -44,7 +44,7 @@ def adm(request):
             machine.init_default(is_on=False)
         ion = machine.is_on()
         print(ion)
-        return 'success'
+        return JsonResponse({'code': '200', 'msg': 'ok'})
 
 @csrf_exempt
 # @login_required(login_url="/login")
