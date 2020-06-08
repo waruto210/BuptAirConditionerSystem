@@ -23,84 +23,134 @@
 {% endblock navibar %}
 
 {% block page-wrapper %}
-<head>
-    <meta charset="UTF-8">
-    <title>Document</title>
-    <style type="text/css">
+    <head>
+        <meta charset="UTF-8">
+        <title>Document</title>
+        <style type="text/css">
 
-        .mui-switch {
-width: 52px;
-height: 31px;
-position: relative;
-border: 1px solid #dfdfdf;
-background-color: #fdfdfd;
-box-shadow: #dfdfdf 0 0 0 0 inset;
-border-radius: 20px;
+            .mui-switch {
+                width: 52px;
+                height: 31px;
+                position: relative;
+                border: 1px solid #dfdfdf;
+                background-color: #fdfdfd;
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                border-radius: 20px;
 
-background-clip: content-box;
-display: inline-block;
--webkit-appearance: none;
-user-select: none;
-outline: none; }
+                background-clip: content-box;
+                display: inline-block;
+                -webkit-appearance: none;
+                user-select: none;
+                outline: none;
+            }
 
-.mui-switch:before {
-content: '';
-width: 29px;
-height: 29px;
-position: absolute;
-top: 0px;
-left: 0;
-border-radius: 20px;
+            .mui-switch:before {
+                content: '';
+                width: 29px;
+                height: 29px;
+                position: absolute;
+                top: 0px;
+                left: 0;
+                border-radius: 20px;
 
-background-color: #fff;
-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+                background-color: #fff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            }
 
-.mui-switch:checked {
-border-color: #64bd63;
-box-shadow: #64bd63 0 0 0 16px inset;
-background-color: #64bd63; }
+            .mui-switch:checked {
+                border-color: #64bd63;
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+            }
 
-.mui-switch:checked:before {
-left: 21px; }
+            .mui-switch:checked:before {
+                left: 21px;
+            }
 
-.mui-switch.mui-switch-animbg {
-transition: background-color ease 0.4s; }
+            .mui-switch.mui-switch-animbg {
+                transition: background-color ease 0.4s;
+            }
 
-.mui-switch.mui-switch-animbg:before {
-transition: left 0.3s; }
+            .mui-switch.mui-switch-animbg:before {
+                transition: left 0.3s;
+            }
 
-.mui-switch.mui-switch-animbg:checked {
-box-shadow: #dfdfdf 0 0 0 0 inset;
-background-color: #64bd63;
-transition: border-color 0.4s, background-color ease 0.4s; }
+            .mui-switch.mui-switch-animbg:checked {
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                background-color: #64bd63;
+                transition: border-color 0.4s, background-color ease 0.4s;
+            }
 
-.mui-switch.mui-switch-animbg:checked:before {
-transition: left 0.3s; }
+            .mui-switch.mui-switch-animbg:checked:before {
+                transition: left 0.3s;
+            }
 
-.mui-switch.mui-switch-anim {
-transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s; }
+            .mui-switch.mui-switch-anim {
+                transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s;
+            }
 
-.mui-switch.mui-switch-anim:before {
-transition: left 0.3s; }
+            .mui-switch.mui-switch-anim:before {
+                transition: left 0.3s;
+            }
 
-.mui-switch.mui-switch-anim:checked {
-box-shadow: #64bd63 0 0 0 16px inset;
-background-color: #64bd63;
-transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s; }
+            .mui-switch.mui-switch-anim:checked {
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+                transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s;
+            }
 
-.mui-switch.mui-switch-anim:checked:before {
-transition: left 0.3s; }
+            .mui-switch.mui-switch-anim:checked:before {
+                transition: left 0.3s;
+            }
 
 
-/*# sourceMappingURL=mui-switch.css.map */
+            /*# sourceMappingURL=mui-switch.css.map */
 
 
-    </style>
-</head>
-<body >
-<div style="text-align:center">
-<label><input class="mui-switch" type="checkbox" checked id="switch"> 空调总闸</label>
-</div>
+        </style>
+    </head>
+    <script>
+        /*function postPowerOn()
+        {
+            var items = document.getElementById("switch");
+            var checked = items[0].checked;
+            $.ajax({
+                type: 'POST',
+                url:'/index',
+                data:{
+                    'opened':checked
+                },
+                datatype: 'json'
+            })
+        }*/
+        $(function () {
+            $("#postPowerOn").click(function (event) {
+                var items = $("input[name='postPowerOn']:checked").val();
+
+                if (items == 'on'){
+                    var items = 'on'
+                }else {
+                    var items = 'off'
+                }
+                console.log(items);
+                $.ajax({
+                    type: 'POST',
+                    url: 'adm/index',
+                    data: {
+                        'opened': items
+                    },
+                    datatype: 'json'
+                })
+            })
+        })
+    </script>
+    <body>
+    <div style="text-align:center">
+        <label><input id="postPowerOn" class="mui-switch" type="checkbox" name="postPowerOn"> 空调总闸</label>
+    </div>
+    <input type="text" id="i3">
+
+
 
 
 {% endblock page-wrapper %}

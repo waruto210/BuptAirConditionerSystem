@@ -21,11 +21,15 @@ def set_params(request):
                            hot_sub=hot_sub, hot_sup=hot_sup, fee=fee, max_run=max_run)
         return JsonResponse({'code': '200', 'msg': 'ok'})
 
-
+@csrf_exempt
 def adm(request):
     if request.method == 'GET':
+        print('get!')
         return render(request, "adm/index.html")
-
+    if request.method == 'POST':
+        opened = request.POST.getlist('opened')
+        print(opened)
+        return 'success'
 
 def checkinfo(request):
     if request.method == 'GET':
