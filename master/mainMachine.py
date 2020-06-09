@@ -389,6 +389,14 @@ class MainMachine:
         finally:
             self.lock.release()
 
+    def check_one_room(self, room_id):
+        self.lock.acquire()
+        try:
+            ret = serializers.serialize('json', State.objects.filter(room_id=room_id))
+            return ret
+        finally:
+            self.lock.release()
+
 
 machine = MainMachine()
 

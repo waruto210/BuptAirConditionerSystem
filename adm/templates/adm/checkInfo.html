@@ -61,8 +61,38 @@
 	  */
      function checkinfo(){
          var a = document.getElementById("checkroom");
-         alert(a.value);
+         /*$.ajax({
+                type: 'POST',
+                url:'checkInfo',
+                data:{
+                    'room_id': a.value
+                },
+                datatype: 'json'
+            })*/
 
+     }
+
+     function getinfo(){
+         var a = document.getElementById("checkroom");
+         $.ajax({
+             type: 'POST',
+                url:'checkInfo',
+                data:{
+                    'room_id': a.value
+                },
+                datatype: 'json',
+             success: function(data){
+                 $("#room_list").html('');
+                 var me_li = data.data;
+                 var message_list = eval(me_li);
+                 for(let i = 0;i<message_list.length;i++){
+                     var fie = message_list[i].fields;
+                     var is_on = fie.is_on;
+                     console.log(fie);
+                     $("#room_list").html($("#room_list").html() + "<p>"+"<b>" + "是否开启 : "+"</b>"+is_on+"</p>")
+                 }
+             }
+         })
      }
 
      function eachTableRow()
@@ -82,9 +112,39 @@
         	}
      	}
 	 }
+
+	 function loop_check()
+     {
+
+         checkinfo();
+          a = window.setTimeout("loop_check()", 5000);
+          clearTimeout(a);
+
+     }
+     loop_check();
+
 </script>
     <input type="button" value="遍历" onclick="eachTableRow()"/>
-    <input type="button" value="查询" onclick="checkinfo()">
+    <input type="button" value="查询" onclick="getinfo()">
+
+    <u1 id = "room_list">
+    </u1>
+
+    {%with state_list|first as first %}
+                  <p><b>房间号: </b>{{ state_list.room_id }}</p>
+                  <p><b>是否入住: </b>{{ state_list.busy }}</p>
+                  <p><b>是否开机: </b>{{ state_list.is_on }}</p>
+                  <p><b>是否送风: </b>{{ state_list.is_work }}</p>
+                  <p><b>风速模式: </b>{{ state_list.choice1 }}</p>
+                  <p><b>送风时间: </b>{{ state_list.choice2 }}</p>
+                  <p><b>计费金额: </b>{{ state_list.work_mode }}</p>
+
+                  <p><b>风速: </b>{{ state_list.sp_mode }}</p>
+                  <p><b>目标温度: </b>{{ state_list.goal_temp }}</p>
+                  <p><b>当前温度: </b>{{ state_list.curr_temp }}</p>
+                  <p><b>总花费: </b>{{ state_list.total_cost }}</p>
+                  <br><br>
+    {%endwith%}
 {% endblock page-wrapper %}
 
 

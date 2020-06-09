@@ -46,19 +46,25 @@ def adm(request):
         print(ion)
         return JsonResponse({'code': '200', 'msg': 'ok'})
 
+
 @csrf_exempt
 # @login_required(login_url="/login")
 def checkinfo(request):
     if request.method == 'GET':
         return render(request, "adm/checkInfo.html")
     elif request.method == 'POST':
-        data = machine.check_info()
+        room_id = request.POST.get('room_id', None)
+        print(room_id)
+        all_data = machine.check_info()
+        data = machine.check_one_room(room_id=room_id)
+        logger.info('data is:'+str(data))
         ret = {
             'code': 200,
-            'msg': 'ok',
+            'msg': 'ok1',
             'data': data
         }
         logger.info('info is: ' + str(ret))
+        all_data = 0
         return JsonResponse(ret)
 
 
