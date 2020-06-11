@@ -55,13 +55,16 @@ def checkinfo(request):
     elif request.method == 'POST':
         room_id = request.POST.get('room_id', None)
         print(room_id)
+        ion = machine.is_on()
+        print('the machine is' + str(ion))
         all_data = machine.check_info()
         data = machine.check_one_room(room_id=room_id)
         logger.info('data is:'+str(data))
         ret = {
             'code': 200,
             'msg': 'ok1',
-            'data': data
+            'data': data,
+            'all_data': all_data
         }
         logger.info('info is: ' + str(ret))
         all_data = 0
