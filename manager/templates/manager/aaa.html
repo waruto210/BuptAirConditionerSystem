@@ -1,0 +1,128 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-06-01 16:17:42
+ * @LastEditTime: 2020-06-01 22:59:26
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /django-air/manager/templates/manager/index.html
+--> 
+{% extends 'base.html' %}
+{% block style %}
+<link rel="stylesheet" href="http://www.jq22.com/jquery/font-awesome.4.6.0.css">
+{% load static %}
+<link href="{% static 'manager/css/foundation.min.css' %}" rel='stylesheet' type="text/css"/>
+<link href="{% static 'manager/css/foundation-datepicker.css' %}"  rel='stylesheet'type="text/css" />
+
+<script src="{% static 'manager/js/jquery-1.11.3.min.js' %}"></script>	
+<script src="{% static 'manager/js/locales/foundation-datepicker.zh-CN.js' %}"></script>
+<script src="{% static 'manager/js/locales/foundation-datepicker.zh-CN.js' %}"></script>
+<style>
+.container { margin:0 auto;  max-width:960px;padding:20px;}
+</style>
+{% endblock style %}
+
+
+{% block title %}经理{% endblock title %}
+
+{% block navibar %}
+    <li class="treeview">
+        <a href="/manager/index">
+            <i class="fa fa-dashboard"></i> <span>查看报表</span>
+        </a>
+    </li>
+{% endblock navibar %}
+
+{% block page-wrapper %}
+<div class="container">
+    <h2>Dependent datepicker</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Check in:
+                    <input type="text" class="span2" value="" id="dpd1">
+                </th>
+                <th>Check out:
+                    <input type="text" class="span2" value="" id="dpd2">
+                </th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<div class="-simple-chart-holder" style="margin:auto" >
+    <table class="table table-hover" style="margin:auto">
+      <thead>
+        <tr>
+            <th scope="col">房间号</th>
+            <th scope="col">使用次数</th>
+            <th scope="col">最常用目标温度</th>
+            <th scope="col">最常用风速</th>
+            <th scope="col">达到目标温度次数</th>
+            <th scope="col">被调度次数</th>
+            <th scope="col">详单记录数</th>
+            <th scope="col">费用</th>
+        </tr>
+      </thead>
+      <tbody>
+      {%for item in cust_list%}
+            <tr>
+                <td width="120px">{{forloop.counter}}</td>
+                <td width="150px"><a href="" style="color: #0f0f0f">{{ item.RoomId }}</a></td>
+                <td width="200px">{{ item.Name }}</td>
+                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}">checkout</a></td>
+            </tr>
+        {%endfor%}
+    </table>
+    <nav aria-label="Page navigation example">
+        <div class="pagination">
+            <ul class="pagination">
+            {% if cust_list.has_previous %}
+                <li class="page-item"><a class="page-link" href="/reception/index?page={{cust_list.previous_page_number}}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo</span></a></li>
+            {% endif %}
+
+            {% for num in cust_list.paginator.page_range%}
+                {%if cust_list.number == num%}
+                    <li class="page-item active"><a class="page-link" href="/reception/index/{{ num }}">{{ num }}</a></li>
+                {%else%}
+                    <li><a class="page-link" href="/reception/index/?page={{num}}">{{ num }}</a></li>
+                {%endif%}
+             {% endfor %}
+
+             {% if cust_list.has_next %}
+                 <li page-item><a class="page-link" href="/reception/index/?page={{cust_list.next_page_number}}" aria-label="Next">
+                      <span aria-hidden="true">&raquo</span></a></li>
+              {% endif %}
+            </ul>
+        </div>
+    </nav>
+</div>
+	
+<script>
+
+$('#demo-3').fdatepicker();
+var nowTemp = new Date();
+var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+var checkin = $('#dpd1').fdatepicker({
+    onRender: function (date) {
+        return date.valueOf() < now.valueOf() ? 'disabled' : '';
+    }
+}).on('changeDate', function (ev) {
+    if (ev.date.valueOf() > checkout.date.valueOf()) {
+        var newDate = new Date(ev.date)
+        newDate.setDate(newDate.getDate() + 1);
+        checkout.update(newDate);
+    }
+    checkin.hide();
+    $('#dpd2')[0].focus();
+}).data('datepicker');
+var checkout = $('#dpd2').fdatepicker({
+    onRender: function (date) {
+        return date.valueOf() <= checkin.date.valueOf() ? 'disabled' : '';
+    }
+}).on('changeDate', function (ev) {
+    checkout.hide();
+}).data('datepicker');
+</script>
+{% endblock page-wrapper %}
+
