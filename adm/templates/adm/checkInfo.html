@@ -1,60 +1,141 @@
 {% extends 'adm/index.html' %}
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
 
-{% block content %}
 
-    <table id="tb" class="table" width="30px">
-  <thead class="thead-dark">
-    <tr>
-        <th scope="col">Room_id</th>
-        <th scope="col">空调状态(开/关)</th>
-        <th scope="col">目标温度</th>
-        <th scope="col">当前温度</th>
-        <th scope="col">空调风速</th>
-        <th scope="col">空调模式</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-        <th scope="row">642</th>
-        <td>开</td>
-        <td>26</td>
-        <td>31</td>
-        <td>1</td>
-        <td>制冷</td>
-    </tr>
-    <tr>
-        <th scope="row">643</th>
-        <td>开</td>
-        <td>19</td>
-        <td>26</td>
-        <td>3</td>
-        <td>制冷</td>
-    </tr>
-    <tr>
-        <th scope="row">644</th>
-        <td>关</td>
-        <td>xxx</td>
-        <td>24</td>
-        <td>xxx</td>
-        <td>xxx</td>
-    </tr>
-  </tbody>
-</table>
 
-{#<input type="button" onclick="cell()"#}
-{#value="Alert first cell">#}
+{% block page-wrapper %}
+    <div class="-simple-chart-holder" style="margin:auto">
+        <table id="tb" class="table" width="30px">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">房间号</th>
+                <th scope="col">空调状态(开/关)</th>
+                <th scope="col">目标温度</th>
+                <th scope="col">当前温度</th>
+                <th scope="col">空调风速</th>
+                <th scope="col">空调模式</th>
+                <th scope="col">当前花费</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+</div>
+<div>请输入要查看的房间号:<input type="text" name="fname" id="checkroom"/></div>
+
+
+
 
     <script type="text/javascript">
      /**
 	  * JavaScript遍历table
 	  */
+     function checkinfo() {
+         $.ajax({
+             type: 'POST',
+             url: 'checkInfo',
+             data: {
+                 "get": ""
+             },
+             datatype: 'json',
+             success: function (alldata) {
+                 var artTable = document.getElementById("tb");
+                 var artBody=artTable.tBodies[0];
+                 artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
+                 var all_li = eval(alldata);
+                 var all_list = eval(all_li.all_data);
+                 var tb = document.getElementById('tb');
+                 var body = tb.querySelector('tbody');
+                 for (let i = 0; i < all_list.length; i++) {
+                     var fie = all_list[i].fields;
+                     var tr = document.createElement('tr');
+                     var td1 = document.createElement('th', scope = "col");
+                     var td2 = document.createElement('td');
+                     var td3 = document.createElement('td');
+                     var td4 = document.createElement('td');
+                     var td5 = document.createElement('td');
+                     var td6 = document.createElement('td');
+                     var td7 = document.createElement('td');
+                     var td8 = document.createElement('td');
+
+                     td1.innerHTML = all_list[i].pk;
+                     td2.innerHTML = fie.is_on;
+                     td3.innerHTML = fie.goal_temp;
+                     td4.innerHTML = fie.curr_temp;
+                     td5.innerHTML = fie.sp_mode;
+                     td6.innerHTML = fie.work_mode;
+                     td7.innerHTML = fie.total_cost;
+
+                     tr.append(td1);
+                     tr.append(td2);
+                     tr.append(td3);
+                     tr.append(td4);
+                     tr.append(td5);
+                     tr.append(td6);
+                     tr.append(td7);
+                     body.append(tr);
+                 }
+             }
+         })
+
+     }
+
+     function getinfo(){
+         var a = document.getElementById("checkroom");
+         $.ajax({
+             type: 'POST',
+                url:'checkInfo',
+                data:{
+                    'room_id': a.value
+                },
+                datatype: 'json',
+             success: function(data){
+                 var artTable = document.getElementById("tb1");
+                 var artBody=artTable.tBodies[0];
+                 artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
+                 $("#room_list").html('');
+                 var me_li = data.data;
+                 var message_list = eval(me_li);
+                 for(let i = 0;i<message_list.length;i++){
+                     var fie = message_list[i].fields;
+                     var tb = document.getElementById('tb1');
+                     var body = tb.querySelector('tbody');
+                     var tr = document.createElement('tr');
+                     var td1 = document.createElement('th',scope="col");
+                     var td2 = document.createElement('td');
+                     var td3 = document.createElement('td');
+                     var td4 = document.createElement('td');
+                     var td5 = document.createElement('td');
+                     var td6 = document.createElement('td');
+                     var td7 = document.createElement('td');
+                     var td8 = document.createElement('td');
+
+                     td1.innerHTML = message_list[i].pk;
+                     td2.innerHTML = fie.is_on;
+                     td3.innerHTML = fie.goal_temp;
+                     td4.innerHTML = fie.curr_temp;
+                     td5.innerHTML = fie.sp_mode;
+                     td6.innerHTML = fie.work_mode;
+                     td7.innerHTML = fie.total_cost;
+
+                     tr.append(td1); tr.append(td2); tr.append(td3); tr.append(td4);
+                     tr.append(td5); tr.append(td6); tr.append(td7);
+                     body.append(tr);
+                     //var is_on = fie.is_on;
+                     //console.log(fie);
+                     //$("#room_list").html($("#room_list").html() + "<p>"+"<b>" + "是否开启 : "+"</b>"+is_on+"</p>")
+                 }
+             }
+         })
+     }
+
      function eachTableRow()
 	 {
 		 //获取table序号
@@ -72,8 +153,100 @@
         	}
      	}
 	 }
+
+	 function loop_check()
+     {
+        //递归，每5s更新一次信息
+         checkinfo();
+          a = window.setTimeout("loop_check()", 5000);
+
+     }
+     loop_check();
+
 </script>
-    <input type="button" value="遍历" onclick="eachTableRow()"/>
+    <input type="button" value="遍历" onclick="loop_check()"/>
+    <input type="button" value="查询" onclick="getinfo()">
+
+    <div class="-simple-chart-holder" style="margin:auto">
+        <table id="tb1" class="table" width="30px">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col">房间号</th>
+                <th scope="col">空调状态(开/关)</th>
+                <th scope="col">目标温度</th>
+                <th scope="col">当前温度</th>
+                <th scope="col">空调风速</th>
+                <th scope="col">空调模式</th>
+                <th scope="col">当前花费</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+
+
+{#    {%with state_list|first as first %}#}
+{#                  <p><b>房间号: </b>{{ state_list.room_id }}</p>#}
+{#                  <p><b>是否入住: </b>{{ state_list.busy }}</p>#}
+{#                  <p><b>是否开机: </b>{{ state_list.is_on }}</p>#}
+{#                  <p><b>是否送风: </b>{{ state_list.is_work }}</p>#}
+{#                  <p><b>风速模式: </b>{{ state_list.choice1 }}</p>#}
+{#                  <p><b>送风时间: </b>{{ state_list.choice2 }}</p>#}
+{#                  <p><b>计费金额: </b>{{ state_list.work_mode }}</p>#}
+{##}
+{#                  <p><b>风速: </b>{{ state_list.sp_mode }}</p>#}
+{#                  <p><b>目标温度: </b>{{ state_list.goal_temp }}</p>#}
+{#                  <p><b>当前温度: </b>{{ state_list.curr_temp }}</p>#}
+{#                  <p><b>总花费: </b>{{ state_list.total_cost }}</p>#}
+{#                  <br><br>#}
+{#    {%endwith%}#}
+{% endblock page-wrapper %}
+
+
+<!--{% block content %}-->
+
+<!--    <table id="tb" class="table" width="30px">-->
+<!--  <thead class="thead-dark">-->
+<!--    <tr>-->
+<!--        <th scope="col">Room_id</th>-->
+<!--        <th scope="col">空调状态(开/关)</th>-->
+<!--        <th scope="col">目标温度</th>-->
+<!--        <th scope="col">当前温度</th>-->
+<!--        <th scope="col">空调风速</th>-->
+<!--        <th scope="col">空调模式</th>-->
+<!--    </tr>-->
+<!--  </thead>-->
+<!--  <tbody>-->
+<!--    <tr>-->
+<!--        <th scope="row">642</th>-->
+<!--        <td>开</td>-->
+<!--        <td>26</td>-->
+<!--        <td>31</td>-->
+<!--        <td>1</td>-->
+<!--        <td>制冷</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <th scope="row">643</th>-->
+<!--        <td>开</td>-->
+<!--        <td>19</td>-->
+<!--        <td>26</td>-->
+<!--        <td>3</td>-->
+<!--        <td>制冷</td>-->
+<!--    </tr>-->
+<!--    <tr>-->
+<!--        <th scope="row">644</th>-->
+<!--        <td>关</td>-->
+<!--        <td>xxx</td>-->
+<!--        <td>24</td>-->
+<!--        <td>xxx</td>-->
+<!--        <td>xxx</td>-->
+<!--    </tr>-->
+<!--  </tbody>-->
+<!--</table>-->
+
+
 {% endblock content %}
 
 </body>

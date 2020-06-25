@@ -2,21 +2,24 @@ import threading
 from customer.slave import Slave
 from operator import attrgetter
 import time
-from customer.models import State, get_current_ticket
 import datetime
 import math
 from master.views import scheduler
 import logging
 from record_manager.RecordManager import RecordManager
+from airconfig.config import config
+from customer.models import State
+from django.core import serializers
 
 logger = logging.getLogger('collect')
-CAL_INTERVAL = 3
-WAIT_INTERVAL = 30
-RATE_INTERVAL = 15
+CAL_INTERVAL = config.cal_interval
+WAIT_INTERVAL = config.wait_interval
+RATE_INTERVAL = config.rate_interval
+TEMP_RATE = config.temp_rate
+# ROOM_LIST = ['101', '102', '103', '104', '105', '201', '202', '203', '204', '205']
 
 
 class MainMachine:
-
     def __init__(self):
 
         self.service_queue: list[Slave] = []
@@ -25,7 +28,7 @@ class MainMachine:
 
         self.lock = threading.RLock()
         # 默认参数
-        self.off_rate = 2
+        self.off_rate = TEMP_RATE # 停止送风后室温变化率
         self.power_on = True
         self.default_work_mode = 0
         self.default_sp_mode = 1
@@ -34,8 +37,9 @@ class MainMachine:
         self.cold_sup = 26
         self.hot_sub = 26
         self.hot_sup = 30
-        self.fee_rates = [1 / 3, 2 / 3, 1]
+        self.fee_rates = [1 / 3, 2 / 3, 1] # 低中高风速的费率
         self.max_run = 2
+
 
     def get_params(self):
         self.lock.acquire()
@@ -49,6 +53,13 @@ class MainMachine:
         self.lock.acquire()
         try:
             return self.power_on
+        finally:
+            self.lock.release()
+
+    def init_default(self, is_on):
+        self.lock.acquire()
+        try:
+            self.power_on = is_on
         finally:
             self.lock.release()
 
@@ -68,19 +79,19 @@ class MainMachine:
             self.lock.release()
 
     def add_service(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, temp_rate=TEMP_RATE)
         if sp_mode != 1:
             scheduler.add_job(change_temp_rate, 'interval', id=room_id + 'change_temp_rate', seconds=RATE_INTERVAL,
                               args=[room_id])
         # 修改工作状态
-        s.set_is_work(True)
-
+        s.set_is_work(1)
+        s.change_fan_spd(sp_mode)
         # 增加一次被调度
         RecordManager.plus_ticket_schedule_count(room_id, phone_num)
         self.service_queue.append(s)
 
     def add_wait(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, timer=True):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, temp_rate=TEMP_RATE)
         logger.info("room_id: " + str(room_id) + "添加到等待队列")
         if timer:
             s.wait_timer = True
@@ -89,7 +100,8 @@ class MainMachine:
                               run_date=(datetime.datetime.now() + datetime.timedelta(seconds=WAIT_INTERVAL)),
                               args=[room_id])
         # 修改工作状态
-        s.set_is_work(False)
+        s.set_is_work(0)
+        s.change_fan_spd(sp_mode)
         self.wait_queue.append(s)
 
     def delete_if_exists(self, room_id):
@@ -128,7 +140,7 @@ class MainMachine:
     def move_to_pause(self, room_id):
         s = self.delete_service(room_id)
         # 修改状态
-        s.set_is_work(False)
+        s.set_is_work(2)
         self.pause_queue.append(s)
 
     def move_to_wait(self, room_id):
@@ -210,6 +222,7 @@ class MainMachine:
         for item in self.pause_queue:
             if item.room_id == room_id:
                 return item
+        return None
 
     def false_wait_timer(self, room_id):
         for item in self.wait_queue:
@@ -241,7 +254,7 @@ class MainMachine:
         finally:
             self.lock.release()
 
-    def change_fan_spd(self, room_id, phone_num, sp_mode):
+    def change_fan_speed(self, room_id, phone_num, sp_mode):
         self.lock.acquire()
         try:
             # 删掉旧请求，调度等待队列
@@ -318,8 +331,26 @@ class MainMachine:
     def one_room_power_off(self, room_id):
         self.lock.acquire()
         try:
+            s = self.get_slave(room_id)
+            if s is not None:
+                s.set_is_work(None)
+                s.set_is_on(False)
+                s.set_curr_temp(self.env_temp)
             self.delete_if_exists(room_id)
             self.wait_to_service()
+        finally:
+            self.lock.release()
+
+    def one_room_power_on(self, room_id, phone_num, goal_temp, sp_mode, work_mode):
+        self.lock.acquire()
+        try:
+            self.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
+            s = self.get_slave(room_id)
+            s.set_is_on(True)
+            s.change_goal_temp(goal_temp)
+            s.set_curr_temp(self.env_temp)
+            s.change_work_mode(work_mode)
+            return s.get_is_work()
         finally:
             self.lock.release()
 
@@ -346,7 +377,23 @@ class MainMachine:
         self.lock.acquire()
         try:
             s = self.get_slave(room_id)
-            return s.get_state()
+            return s.get_poll_state()
+        finally:
+            self.lock.release()
+
+    def check_info(self):
+        self.lock.acquire()
+        try:
+            ret = serializers.serialize('json', State.objects.all())
+            return ret
+        finally:
+            self.lock.release()
+
+    def check_one_room(self, room_id):
+        self.lock.acquire()
+        try:
+            ret = serializers.serialize('json', State.objects.filter(room_id=room_id))
+            return ret
         finally:
             self.lock.release()
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 '''
 @Author: your name
 @Date: 2020-06-01 16:17:42
@@ -7,7 +8,11 @@
 @FilePath: /django-air/record_manager/RecordManager.py
 '''
 from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket
+=======
+from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket, get_all_ticket
+>>>>>>> 838f9efa0556d5c4e79c7a11552389d9275229ad
 import datetime
+
 
 class RecordManager:
     @staticmethod
@@ -71,8 +76,23 @@ class RecordManager:
         r.save()
 
     @staticmethod
+<<<<<<< HEAD
     def add_form_record(room_id,date_to,date_from,oc_count,common_temp,choice,common_spd,achieve_count,schedule_count,ticket_count,total_cost):
         r = Record.objects.create(room_id=room_id,date_from = date_from, date_to = date_to,record_type='form',common_temp=common_temp,
         choice=choice,common_spd=common_spd,achieve_count=achieve_count,schedule_count=schedule_count,
         ticket_count=ticket_count,total_cost=total_cost)
         r.save()
+=======
+    def calc_bill(room_id,phone_num):
+        tickets = list(Ticket.objects.filter(room_id=room_id,phone_num=phone_num))
+        total_cost = 0.
+        total_use = 0
+        for ticket in tickets:
+            total_cost += ticket.cost
+            total_use += ticket.duration
+        return total_cost, total_use
+
+    @staticmethod
+    def get_tickets(room_id,phone_num):
+        return list(get_all_ticket(room_id,phone_num))
+>>>>>>> 838f9efa0556d5c4e79c7a11552389d9275229ad

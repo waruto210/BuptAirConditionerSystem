@@ -1,17 +1,27 @@
 from operator import attrgetter
-from .models import  State
+from customer.models import State
 
 
 class Slave:
-    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
+    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, temp_rate):
         self.room_id = room_id
         self.phone_num = phone_num
         # 接受送风服务的开始时间或者 无送风服务的等待开始时间
         self.req_time = req_time
         self.sp_mode = sp_mode
         self.inverse_sp = 2 - sp_mode
-        self.temp_rate = 2
+        self.temp_rate = temp_rate # 默认的每分钟温度变化率
         self.wait_timer = False
+
+    def init_state(self, room_id, goal_temp, curr_temp, sp_mode, work_mode):
+        state, _ = State.objects.get_or_create(room_id=room_id)
+        state.goal_temp = goal_temp
+        state.curr_temp = curr_temp
+        state.sp_mode = sp_mode
+        state.work_mode = work_mode
+        state.is_on = True
+        state.is_work = False
+        state.save()
 
     def set_curr_temp(self, curr_temp):
         state = State.objects.get(room_id=self.room_id)
@@ -38,6 +48,11 @@ class Slave:
         state.work_mode = work_mode
         state.save()
 
+    def set_is_on(self, is_on):
+        state = State.objects.get(room_id=self.room_id)
+        state.is_on = is_on
+        state.save()
+
     def set_is_work(self, is_work):
         state = State.objects.get(room_id=self.room_id)
         state.is_work = is_work
@@ -51,13 +66,22 @@ class Slave:
         state = State.objects.get(room_id=self.room_id)
         return state.curr_temp
 
+    def set_goal_temp(self, goal_temp):
+        state = State.objects.get(room_id=self.room_id)
+        state.goal_temp = goal_temp
+        state.save()
+
     def get_goal_temp(self):
         state = State.objects.get(room_id=self.room_id)
         return state.goal_temp
 
-    def get_state(self):
+    def get_poll_state(self):
         state = State.objects.get(room_id=self.room_id)
         return state.curr_temp, state.total_cost, state.is_work
+
+    def get_all_state(self):
+        state = State.objects.get(room_id=self.room_id)
+        return state
 
     def __repr__(self):
         return repr((self.room_id, self.sp_mode, self.req_time, self.temp_rate, self.wait_timer))
