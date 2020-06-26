@@ -34,106 +34,158 @@
 
 
     <script type="text/javascript">
-     /**
-	  * JavaScript遍历table
-	  */
-     function checkinfo() {
+        /**
+         * JavaScript遍历table
+         */
+        function checkinfo() {
+            var a = document.getElementById("checkroom");
+            $.ajax({
+                type: 'POST',
+                url: 'checkInfo',
+                data: {
+                    "get": ""
+                },
+                datatype: 'json',
+                success: function (data) {
+                    var artTable = document.getElementById("tb");
+                    var artBody = artTable.tBodies[0];
+                    artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
+                    var artTable2 = document.getElementById("tb1");
+                    var artBody2 = artTable2.tBodies[0];
+                    artBody2.parentNode.outerHTML = artBody2.parentNode.outerHTML.replace(artBody2.innerHTML, "");
+                    var all_li = eval(data);
+                    var all_list = eval(all_li.all_data);
+                    var tb = document.getElementById('tb');
+                    var body = tb.querySelector('tbody');
+                    var tb2 = document.getElementById('tb1');
+                    var body2 = tb2.querySelector('tbody');
+                    for (let i = 0; i < all_list.length; i++) {
+                        var fie = all_list[i].fields;
+                        var tr = document.createElement('tr');
+                        var tr2 = document.createElement('tr');
+                        var td1 = document.createElement('th', scope = "col");
+                        var td2 = document.createElement('td');
+                        var td3 = document.createElement('td');
+                        var td4 = document.createElement('td');
+                        var td5 = document.createElement('td');
+                        var td6 = document.createElement('td');
+                        var td7 = document.createElement('td');
+                        var td8 = document.createElement('td');
+
+                        td1.innerHTML = all_list[i].pk;
+                        td2.innerHTML = fie.is_on;
+                        td3.innerHTML = fie.goal_temp;
+                        td4.innerHTML = fie.curr_temp;
+                        td5.innerHTML = fie.sp_mode;
+                        td6.innerHTML = fie.work_mode;
+                        td7.innerHTML = fie.total_cost;
+
+                        tr.append(td1);
+                        tr.append(td2);
+                        tr.append(td3);
+                        tr.append(td4);
+                        tr.append(td5);
+                        tr.append(td6);
+                        tr.append(td7);
+
+
+                        if (all_list[i].pk == a.value) {
+
+                            var t1 = document.createElement('th', scope = "col");
+                            var t2 = document.createElement('td');
+                            var t3 = document.createElement('td');
+                            var t4 = document.createElement('td');
+                            var t5 = document.createElement('td');
+                            var t6 = document.createElement('td');
+                            var t7 = document.createElement('td');
+                            var t8 = document.createElement('td');
+                            t1.innerHTML = all_list[i].pk;
+                            t2.innerHTML = fie.is_on;
+                            t3.innerHTML = fie.goal_temp;
+                            t4.innerHTML = fie.curr_temp;
+                            t5.innerHTML = fie.sp_mode;
+                            t6.innerHTML = fie.work_mode;
+                            t7.innerHTML = fie.total_cost;
+                            tr2.append(t1);
+                            tr2.append(t2);
+                            tr2.append(t3);
+                            tr2.append(t4);
+                            tr2.append(t5);
+                            tr2.append(t6);
+                            tr2.append(t7);
+
+                        }
+                        body.append(tr);
+                        body2.append(tr2);
+
+
+                    }
+                }
+            })
+
+        }
+
+     function getinfo() {
+         var a = document.getElementById("checkroom");
+         var infotable = document.getElementById("tb");
+         var data = [];
+         for (var i = 0, rows = infotable.rows.length; i < rows; i++) {
+             for (var j = 0, cells = infotable.rows[i].cells.length; j < cells; j++) {
+                 if (!data[i]) {
+                     data[i] = new Array();
+                 }
+                 data[i][j] = infotable.rows[i].cells[j].innerHTML;
+             }
+         }
          $.ajax({
              type: 'POST',
              url: 'checkInfo',
              data: {
-                 "get": ""
+                 'room_id': a.value
              },
              datatype: 'json',
-             success: function (alldata) {
-                 var artTable = document.getElementById("tb");
-                 var artBody=artTable.tBodies[0];
-                 artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
-                 var all_li = eval(alldata);
-                 var all_list = eval(all_li.all_data);
-                 var tb = document.getElementById('tb');
-                 var body = tb.querySelector('tbody');
-                 for (let i = 0; i < all_list.length; i++) {
-                     var fie = all_list[i].fields;
-                     var tr = document.createElement('tr');
-                     var td1 = document.createElement('th', scope = "col");
-                     var td2 = document.createElement('td');
-                     var td3 = document.createElement('td');
-                     var td4 = document.createElement('td');
-                     var td5 = document.createElement('td');
-                     var td6 = document.createElement('td');
-                     var td7 = document.createElement('td');
-                     var td8 = document.createElement('td');
-
-                     td1.innerHTML = all_list[i].pk;
-                     td2.innerHTML = fie.is_on;
-                     td3.innerHTML = fie.goal_temp;
-                     td4.innerHTML = fie.curr_temp;
-                     td5.innerHTML = fie.sp_mode;
-                     td6.innerHTML = fie.work_mode;
-                     td7.innerHTML = fie.total_cost;
-
-                     tr.append(td1);
-                     tr.append(td2);
-                     tr.append(td3);
-                     tr.append(td4);
-                     tr.append(td5);
-                     tr.append(td6);
-                     tr.append(td7);
-                     body.append(tr);
-                 }
-             }
-         })
-
-     }
-
-     function getinfo(){
-         var a = document.getElementById("checkroom");
-         $.ajax({
-             type: 'POST',
-                url:'checkInfo',
-                data:{
-                    'room_id': a.value
-                },
-                datatype: 'json',
-             success: function(data){
+             success: function () {
                  var artTable = document.getElementById("tb1");
-                 var artBody=artTable.tBodies[0];
+                 var artBody = artTable.tBodies[0];
                  artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
-                 $("#room_list").html('');
-                 var me_li = data.data;
-                 var message_list = eval(me_li);
-                 for(let i = 0;i<message_list.length;i++){
-                     var fie = message_list[i].fields;
-                     var tb = document.getElementById('tb1');
-                     var body = tb.querySelector('tbody');
-                     var tr = document.createElement('tr');
-                     var td1 = document.createElement('th',scope="col");
-                     var td2 = document.createElement('td');
-                     var td3 = document.createElement('td');
-                     var td4 = document.createElement('td');
-                     var td5 = document.createElement('td');
-                     var td6 = document.createElement('td');
-                     var td7 = document.createElement('td');
-                     var td8 = document.createElement('td');
+                 console.log("aaa");
 
-                     td1.innerHTML = message_list[i].pk;
-                     td2.innerHTML = fie.is_on;
-                     td3.innerHTML = fie.goal_temp;
-                     td4.innerHTML = fie.curr_temp;
-                     td5.innerHTML = fie.sp_mode;
-                     td6.innerHTML = fie.work_mode;
-                     td7.innerHTML = fie.total_cost;
+                 for (var i = 0; i < data.length; i++) {
+                     if (data[i][0] == a.value) {
+                         $("#room_list").html('');
 
-                     tr.append(td1); tr.append(td2); tr.append(td3); tr.append(td4);
-                     tr.append(td5); tr.append(td6); tr.append(td7);
-                     body.append(tr);
-                     //var is_on = fie.is_on;
-                     //console.log(fie);
-                     //$("#room_list").html($("#room_list").html() + "<p>"+"<b>" + "是否开启 : "+"</b>"+is_on+"</p>")
+                         var tb = document.getElementById('tb1');
+                         var body = tb.querySelector('tbody');
+                         var tr = document.createElement('tr');
+                         var td1 = document.createElement('th', scope = "col");
+                         var td2 = document.createElement('td');
+                         var td3 = document.createElement('td');
+                         var td4 = document.createElement('td');
+                         var td5 = document.createElement('td');
+                         var td6 = document.createElement('td');
+                         var td7 = document.createElement('td');
+                         var td8 = document.createElement('td');
+                         td1.innerHTML = data[i][0];
+                         td2.innerHTML = data[i][1];
+                         td3.innerHTML = data[i][2];
+                         td4.innerHTML = data[i][3];
+                         td5.innerHTML = data[i][4];
+                         td6.innerHTML = data[i][5];
+                         td7.innerHTML = data[i][6];
+
+                         tr.append(td1);
+                         tr.append(td2);
+                         tr.append(td3);
+                         tr.append(td4);
+                         tr.append(td5);
+                         tr.append(td6);
+                         tr.append(td7);
+                         body.append(tr);
+                     }
                  }
              }
          })
+
      }
 
      function eachTableRow()
@@ -159,7 +211,7 @@
         //递归，每5s更新一次信息
          checkinfo();
           a = window.setTimeout("loop_check()", 5000);
-
+          //window.clearTimeout(a);
      }
      loop_check();
 

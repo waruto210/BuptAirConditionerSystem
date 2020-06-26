@@ -8,16 +8,14 @@
 </head>
 <body>
 {% block page-wrapper %}
-    <div style="width:100%;text-align:center">
+    <div style="width:100%;text-align:center" >
 <!--<p action="../../static/adm/setdefault.js " method="post">-->
 <form action="/adm/set_params" method="post">
     {%csrf_token%}
     <div>设置默认温度: <input type="text" name="env_temp" /></div>
     <div>设置默认风速:
-        <input type="checkbox" name="风速" value="小风" /> 小风
-        <input type="checkbox" name="风速" value="中风"  />中风
-        <input type="checkbox" name="风速" value="大风"  />大风
-        </div>
+        <input type="text" name="sp_mode"/>0为低风/1为中风/2为高风
+    </div>
     <div>设置默认模式:
          <input type="text" name="work_mode" />0为制冷/1为制热
     </div>
@@ -28,6 +26,7 @@
     <div>设置默认费用:<input type="text" name="fee"/></div>
     <div>设置max_run:<input type="text" name="max_run"/></div>
     <input type="submit" value="提交" />
+
 </form>
     </div>
 {% endblock page-wrapper %}

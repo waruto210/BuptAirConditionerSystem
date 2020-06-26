@@ -72,7 +72,8 @@ class MainMachine:
             self.hot_sub = hot_sub
             self.hot_sup = hot_sup
             self.default_goal_temp = goal_temp
-            self.fee_rates = self.fee_rates * fee
+            for i in range(3):
+                self.fee_rates[i] = fee*self.fee_rates[i]
             self.max_run = max_run
         finally:
             self.lock.release()
