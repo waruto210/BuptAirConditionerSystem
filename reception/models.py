@@ -22,7 +22,7 @@ def create_bill(room_id,phone_num) -> Bill:
                                checkin_date=customer.CheckinDate,
                                checkout_date=customer.CheckoutDate
                                )
-    bill.total_cost, bill.total_use = RecordManager.calc_bill(bill.room_id,bill.phone_num)
+    bill.total_cost, bill.total_use = RecordManager.calc_bill(bill.room_id,bill.phone_num,bill.checkin_date)
     customer.delete()
     state = State.objects.get(room_id=room_id)
     init_state(state)
@@ -30,13 +30,18 @@ def create_bill(room_id,phone_num) -> Bill:
     bill.save()
     return bill
 
-
+def get_customer(room_id) -> bool:
+    try:
+        Customer.objects.get(RoomId=room_id)
+        return True
+    except:
+        return False
 def create_customer(room_id, name, phone_num) -> Customer:
     customer = Customer.objects.create(RoomId=room_id,Name=name,PhoneNum=phone_num,CheckinDate=datetime.datetime.now())
     customer.save()
     return customer
 
 
-def get_tickets(room_id,phone_num):
-    return RecordManager.get_tickets(room_id, phone_num)
+def get_tickets(room_id,phone_num,checkin_date):
+    return RecordManager.get_tickets(room_id, phone_num,checkin_date)
 
