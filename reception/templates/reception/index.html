@@ -40,8 +40,8 @@
                 <td width="150px"><a href="" style="color: #0f0f0f">{{ item.RoomId }}</a></td>
                 <td width="200px">{{ item.Name }}</td>
                 <td width="200px">{{ item.PhoneNum }}</td>
-                <td width="250px">{{ item.CheckinDate }}</td>
-                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}&phone_num={{ item.PhoneNum }}">checkout</a></td>
+                <td width="250px">{{ item.CheckinDate |date:"Y-m-d H:i:s"}}</td>
+                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}&phone_num={{ item.PhoneNum }}&checkin_date={{ item.CheckinDate |date:"Y-m-d H:i:s" }}">checkout</a></td>
             </tr>
         {%endfor%}
     </table>
