@@ -43,14 +43,20 @@
      <div class="container">
          <!-- Content here -->
 
-         <div class="input-group flex-nowrap">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="addon-wrapping">@</span>
-          </div>
-        </div>
+
           <div class="room">
-              <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="room id" >
-              <input type="text" id="phone_number_input" class="form-control" placeholder="手机号" aria-label="phone number">
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="addon-wrapping">@</span>
+                </div>
+                <input type="text" id="room_id_input" class="form-control" placeholder="房间号" aria-label="room id" >
+              </div>
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="addon-wrapping">@</span>
+                </div>
+                <input type="text" id="phone_number_input" class="form-control" placeholder="手机号" aria-label="phone number">
+             </div>
             <button type="button" id="info_btn" class="btn btn-success" style="right: 600px;">确认信息</button>
          </div>
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">

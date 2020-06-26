@@ -36,6 +36,10 @@ def checkin(request):
             context = {"type": "error", "message": "房间已占用"}
             return render(request, 'reception/checkin.html',context)
         customer = create_customer(room_id,customer_name,phone_num)
+        # 设置入住状态
+        state = State.objects.get(room_id=room_id)
+        state.busy = True
+        state.save()
         if customer:
             cust_list = Customer.objects.all()
             paginator = Paginator(cust_list, 10, 1)

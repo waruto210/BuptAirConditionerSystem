@@ -36,7 +36,7 @@ class MainMachine:
         self.cold_sup = 25
         self.hot_sub = 26
         self.hot_sup = 30
-        self.fee_rates = [1 / 3, 2 / 3, 1]  # 低中高风速的费率
+        self.fee_rates = [1 / 3, 1 / 2, 1]  # 低中高风速的费率
         self.max_run = 3
 
     def get_params(self):
@@ -187,7 +187,7 @@ class MainMachine:
         # 风速最低，服务时间最长的排第0
         self.service_queue.sort(key=attrgetter('sp_mode', 'req_time'))
         s = self.get_slave(room_id)
-        # 如果风速最低，服务时间最长的请求风速小于等于结束等待的请求，就处理
+        # 如果风速最低、服务时间最长的请求的风速小于等于结束等待的请求，就处理
         if self.service_queue[0].sp_mode <= s.sp_mode:
             self.move_to_wait(self.service_queue[0].room_id)
             self.move_to_service(room_id)
@@ -343,14 +343,14 @@ class MainMachine:
         finally:
             self.lock.release()
 
-    def one_room_power_on(self, room_id, phone_num, goal_temp, sp_mode, work_mode):
+    def one_room_power_on(self, room_id, phone_num, goal_temp, sp_mode, work_mode, curr_temp):
         self.lock.acquire()
         try:
             self.new_request(room_id=room_id, phone_num=phone_num, req_time=int(time.time()), sp_mode=sp_mode)
             s = self.get_slave(room_id)
             s.set_is_on(True)
             s.change_goal_temp(goal_temp)
-            s.set_curr_temp(config.room_temp[room_id])
+            s.set_curr_temp(curr_temp)
             s.change_work_mode(work_mode)
             return s.get_is_work()
         finally:
@@ -398,8 +398,6 @@ class MainMachine:
             return ret
         finally:
             self.lock.release()
-
-
 
 
 machine = MainMachine()

@@ -73,6 +73,7 @@ def power_on(request):
         goal_temp = int(request.POST.get('goal_temp', None))
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = int(request.POST.get('work_mode', None))
+        curr_temp = float(request.POST.get('curr_temp', None))
         logger.info("room_id: " + room_id + "开机")
         RecordManager.add_power_on_record(room_id)
 
@@ -80,8 +81,9 @@ def power_on(request):
         RecordManager.add_goal_temp_record(room_id, goal_temp)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
         data['is_work'] = machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp,
-                                                    sp_mode=sp_mode, work_mode=work_mode)
-
+                                                    sp_mode=sp_mode, work_mode=work_mode, curr_temp=curr_temp)
+        state = State.objects.get(room_id=room_id)
+        data['total_cost'] = state.total_cost
         ret['data'] = data
         return JsonResponse(ret)
 

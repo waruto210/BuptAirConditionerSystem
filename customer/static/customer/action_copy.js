@@ -7,6 +7,7 @@ let is_spmode_change_timer = false;
 // 轮询定时器
 let timer = null;
 let off_timer = null;
+let is_verify = false;
 // 用户是否开机
 let power_on = false;
 // 目标温度,环境温度
@@ -153,7 +154,11 @@ function verify() {
                 env_temp = data.env_temp;
                 curr_temp = env_temp;
                 $curr_temp.text(curr_temp);
+                is_verify = true;
             }
+        },
+        error: function (ret) {
+            console.log(ret.msg);
         }
     })
 }
@@ -169,6 +174,7 @@ $(document).ready(function() {
         phone_num = $phone_num.val();
         if(room_id === "" || phone_num === "") {
             alert("请输入信息");
+            return;
         }
         console.log("room_id is: ", room_id, "phone_num is: ", phone_num);
         verify();
@@ -176,6 +182,10 @@ $(document).ready(function() {
 
     $power_btn.on("click", function() {
         if(power_on === false) {
+            if(is_verify === false) {
+                alert("请先输入房间号和手机号进行验证");
+                return;
+            }
             clearInterval(off_timer);
             postPowerOn();
         } else {
@@ -471,19 +481,22 @@ function postPowerOn() {
             'sp_mode': sp_mode,
             'work_mode': work_mode,
             'goal_temp': goal_temp,
+            'curr_temp': curr_temp,
         },
         success: function (ret) {
             if (ret.code !== 200) {
                 console.log(ret.msg);
             } else {
-                console.log("poweron: ", ret);
                 data = ret.data;
+                console.log("poweron: ", data);
                 if(data.is_work === 1) {
                     $air_state.text("送风中");
                 } else {
                     $air_state.text("等待中");
                 }
                 power_on = true;
+                total_cost = data.total_cost;
+                $total_cost.text(total_cost.toFixed(2));
                 if(curr_temp === goal_temp) {
                     is_pause = true;
                     pause();
