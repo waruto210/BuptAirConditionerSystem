@@ -4,10 +4,11 @@ from django.http import HttpResponse, JsonResponse
 from .models import Customer, State, init_state
 from django.views.decorators.csrf import csrf_exempt
 import math
-from master.mainMachine import machine, cal_service_cost_temp, cal_wait_temp, cal_pause_temp, change_temp_rate
+from master.mainMachine import machine, cal_service_cost_temp, cal_wait_temp, cal_pause_temp, cal_off_temp
 import datetime
 import logging
 from record_manager.RecordManager import RecordManager
+from airconfig.config import config
 
 logger = logging.getLogger('collect')
 
@@ -29,10 +30,33 @@ def get_default(request):
         data['cold_sup'] = params[3]
         data['hot_sub'] = params[4]
         data['hot_sup'] = params[5]
-        data['env_temp'] = params[6]
+        data['goal_temp'] = params[6]
 
         ret['data'] = data
         logger.info('default params is: ' + str(ret))
+        return JsonResponse(ret)
+
+
+@csrf_exempt
+def verify(request):
+    if request.method == 'POST':
+        ret = {
+            'code': 200,
+            'msg': 'ok'
+        }
+        room_id = request.POST.get('room_id', None)
+        phone_num = request.POST.get('phone_num', None)
+        # 确认是否登记入住了
+        try:
+            Customer.objects.get(RoomId=room_id, PhoneNum=phone_num)
+        except Exception:
+            logger.info('Can\'t find customer')
+            ret['code'] = 1001
+            ret['msg'] = "当前房间及对应手机号未在前台登记，是否输入错误？"
+            return JsonResponse(ret)
+        env_temp = config.room_temp[room_id]
+        data = {'env_temp': env_temp}
+        ret['data'] = data
         return JsonResponse(ret)
 
 
@@ -49,22 +73,14 @@ def power_on(request):
         goal_temp = int(request.POST.get('goal_temp', None))
         sp_mode = int(request.POST.get('sp_mode', None))
         work_mode = int(request.POST.get('work_mode', None))
-        # 确认是否登记入住了
-        try:
-            Customer.objects.get(RoomId=room_id, PhoneNum=phone_num)
-        except Exception:
-            logger.info('Can\'t find customer')
-            ret['code'] = 1001
-            ret['msg'] = "当前房间及对应手机号未在前台登记，是否输入错误？"
-            return JsonResponse(ret)
-
         logger.info("room_id: " + room_id + "开机")
         RecordManager.add_power_on_record(room_id)
 
         # 新建ticket和record
         RecordManager.add_goal_temp_record(room_id, goal_temp)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
-        data['is_work'] = machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp, sp_mode=sp_mode, work_mode=work_mode)
+        data['is_work'] = machine.one_room_power_on(room_id=room_id, phone_num=phone_num, goal_temp=goal_temp,
+                                                    sp_mode=sp_mode, work_mode=work_mode)
 
         ret['data'] = data
         return JsonResponse(ret)
@@ -112,6 +128,7 @@ def change_fan_speed(request):
         }
         return JsonResponse(ret)
 
+
 @csrf_exempt
 def change_goal_temp(request):
     if request.method == 'POST':
@@ -129,6 +146,7 @@ def change_goal_temp(request):
         }
         return JsonResponse(ret)
 
+
 @csrf_exempt
 def change_work_mode(request):
     if request.method == 'POST':
@@ -143,6 +161,7 @@ def change_work_mode(request):
             'data': {},
         }
         return JsonResponse(ret)
+
 
 @csrf_exempt
 def poll(request):
@@ -199,3 +218,17 @@ def customer(request):
             return render(request, "customer/index_copy.html")
         else:
             return HttpResponse("中央空调未开机")
+
+
+@csrf_exempt
+def off_rate(request):
+    if request.method == 'POST':
+        room_id = request.POST.get('room_id', None)
+        curr_temp = cal_off_temp(room_id)
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+        }
+        data = {'curr_temp': curr_temp}
+        ret['data'] = data
+        return JsonResponse(ret)

@@ -1,21 +1,22 @@
 let HEART_BEAT = "heart_beat";
-let HEART_BEAT_INTERVAL = 3;
+let HEART_BEAT_INTERVAL = 10;
 
 let is_pause = false;
 let is_temp_change_timer = false;
 let is_spmode_change_timer = false;
 // 轮询定时器
 let timer = null;
+let off_timer = null;
 // 用户是否开机
 let power_on = false;
 // 目标温度,环境温度
-let goal_temp;
+let d_goal_temp, goal_temp;
 let curr_temp;
 let env_temp;
 // 工作模式,0为制冷
-let work_mode;
+let d_work_mode, work_mode;
 // 风速模式
-let sp_mode;
+let d_sp_mode, sp_mode;
 // 客户信息
 let room_id = null;
 let phone_num = null;
@@ -73,17 +74,19 @@ function setParams() {
             } else {
                 data = ret.data
                 // 变量赋值
-                env_temp = data.env_temp;
-                curr_temp = env_temp;
-                work_mode = data.work_mode;
-                sp_mode = data.sp_mode;
+                d_work_mode = data.work_mode
+                work_mode = d_work_mode;
+                d_sp_mode = data.sp_mode;
+                sp_mode = d_sp_mode;
+
                 cold_sub = data.cold_sub;
                 cold_sup = data.cold_sup;
+
                 hot_sub = data.hot_sub;
                 hot_sup = data.hot_sup;
-                goal_temp = 26;
+                d_goal_temp = data.goal_temp;
+                goal_temp = d_goal_temp;
                 setInitState();
-                disButton();
             }
         },
         error: function (err) {
@@ -94,8 +97,7 @@ function setParams() {
 }
 
 function setInitState() {
-    // 当前温度
-    $curr_temp.text(curr_temp);
+
     // 风速
     if(sp_mode === 0) {
         $speed.text("低风");
@@ -134,37 +136,63 @@ function enaButton() {
     $("#temp_add_btn").attr("disabled", false);
     $("#temp_minus_btn").attr("disabled", false);
 }
+function verify() {
+    $.ajax({
+        url: 'verify',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
+            'phone_num': phone_num,
+        },
+        success: function (ret) {
+            if (ret.code !== 200) {
+                alert(ret.msg);
+            } else {
+                let data = ret.data;
+                env_temp = data.env_temp;
+                curr_temp = env_temp;
+                $curr_temp.text(curr_temp);
+            }
+        }
+    })
+}
 
 $(document).ready(function() {
     // 绑定html元素
     bindElement();
-    // 获取默认参数
+    // 获取除环境温度以外的默认参数
     setParams();
-
 
     $info_btn.on("click", function () {
         room_id = $room_id.val();
         phone_num = $phone_num.val();
+        if(room_id === "" || phone_num === "") {
+            alert("请输入信息");
+        }
         console.log("room_id is: ", room_id, "phone_num is: ", phone_num);
+        verify();
     })
 
     $power_btn.on("click", function() {
         if(power_on === false) {
+            clearInterval(off_timer);
             postPowerOn();
-            // 开机后立即发出该请求
         } else {
             postPowerOff();
         }
         if( power_on === true ) {
-            enaButton();
             // 心跳
             timer = setInterval(poll, HEART_BEAT_INTERVAL*1000);
         } else {
             clearInterval(timer);
-            curr_temp = env_temp;
-            $curr_temp.text(curr_temp);
-            disButton();
             $air_state.text("已关机");
+            goal_temp = d_goal_temp;
+            work_mode = d_work_mode;
+            sp_mode = d_sp_mode;
+            setInitState();
+
+            off_timer = setInterval(postOffRate, HEART_BEAT_INTERVAL*1000);
         }
     });
 
@@ -179,7 +207,8 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "sun.png"
                 $pic_mode.attr("src", tmp.join("/"));
                 work_mode = 1;
-                changeWorkMode();
+                if(power_on === true)
+                    changeWorkMode();
             }
         } else {
             if(goal_temp > cold_sup) {
@@ -188,7 +217,8 @@ $(document).ready(function() {
                 tmp[tmp.length - 1] = "snow.png"
                 $pic_mode.attr("src", tmp.join("/"));
                 work_mode = 0;
-                changeWorkMode();
+                if(power_on === true)
+                    changeWorkMode();
             }
         }
 
@@ -208,7 +238,8 @@ $(document).ready(function() {
                 is_temp_change_timer = true;
                 setTimeout(function () {
                     is_temp_change_timer = false;
-                    changeGoalTemp();
+                    if(power_on === true)
+                        changeGoalTemp();
                 }, 1000);
             }
         }
@@ -228,7 +259,8 @@ $(document).ready(function() {
                 is_temp_change_timer = true;
                 setTimeout(function () {
                     is_temp_change_timer = false;
-                    changeGoalTemp();
+                    if(power_on === true)
+                        changeGoalTemp();
                 }, 1000);
             }
         }
@@ -238,23 +270,20 @@ $(document).ready(function() {
         if(sp_mode === 0){
             $speed.text("中风");
             sp_mode++;
-            //clear_rate_timer();
         }else if(sp_mode === 1){
             $speed.text("高风");
             sp_mode++;
-            //set_rate_timer();
         } else {
             $speed.text("低风");
             sp_mode = 0;
-            //clear_rate_timer();
-            //set_rate_timer();
 
         }
         if(is_spmode_change_timer === false) {
             is_spmode_change_timer = true;
             setTimeout(function () {
                 is_spmode_change_timer = false;
-                changeFanSpeed();
+                if(power_on === true)
+                    changeFanSpeed();
             }, 1000);
         }
     });
@@ -299,6 +328,27 @@ function poll() {
     })
 }
 
+function  postOffRate() {
+    console.log('POST OFF RATE');
+    $.ajax({
+        url: 'off_rate',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'room_id': room_id,
+            'phone_num': phone_num,
+        },
+        success: function (ret) {
+            let data = ret.data;
+            console.log(data);
+            curr_temp = data.curr_temp;
+            $curr_temp.text(curr_temp.toFixed(2));
+            if(Math.abs(curr_temp - env_temp) < 1e-5) {
+                clearInterval(off_timer);
+            }
+        }
+    })
+}
 function pause() {
     $.ajax({
         url: 'pause',

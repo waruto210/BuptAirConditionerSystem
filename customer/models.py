@@ -1,6 +1,6 @@
 from django.db import models
 import datetime
-
+from airconfig.config import config
 
 # Create your models here.
 class Customer(models.Model):

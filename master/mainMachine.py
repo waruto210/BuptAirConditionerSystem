@@ -16,7 +16,6 @@ CAL_INTERVAL = config.cal_interval
 WAIT_INTERVAL = config.wait_interval
 RATE_INTERVAL = config.rate_interval
 TEMP_RATE = config.temp_rate
-# ROOM_LIST = ['101', '102', '103', '104', '105', '201', '202', '203', '204', '205']
 
 
 class MainMachine:
@@ -25,27 +24,26 @@ class MainMachine:
         self.service_queue: list[Slave] = []
         self.wait_queue: list[Slave] = []
         self.pause_queue: list[Slave] = []
-
         self.lock = threading.RLock()
         # 默认参数
-        self.off_rate = TEMP_RATE # 停止送风后室温变化率
+        # self.off_rate = TEMP_RATE  # 停止送风后室温变化率
         self.power_on = True
         self.default_work_mode = 0
         self.default_sp_mode = 1
-        self.env_temp = 26
+        self.default_goal_temp = 25
+        # self.env_temp = 26
         self.cold_sub = 18
-        self.cold_sup = 26
+        self.cold_sup = 25
         self.hot_sub = 26
         self.hot_sup = 30
-        self.fee_rates = [1 / 3, 2 / 3, 1] # 低中高风速的费率
-        self.max_run = 2
-
+        self.fee_rates = [1 / 3, 2 / 3, 1]  # 低中高风速的费率
+        self.max_run = 3
 
     def get_params(self):
         self.lock.acquire()
         try:
             return self.default_work_mode, self.default_sp_mode, self.cold_sub, self.cold_sup, \
-                   self.hot_sub, self.hot_sup, self.env_temp
+                   self.hot_sub, self.hot_sup, self.default_goal_temp
         finally:
             self.lock.release()
 
@@ -63,26 +61,31 @@ class MainMachine:
         finally:
             self.lock.release()
 
-    def set_params(self, word_mode, cold_sub, cold_sup,
-                   hot_sub, hot_sup, env_temp, fee, max_run):
+    def set_params(self, word_mode, sp_mode, cold_sub, cold_sup,
+                   hot_sub, hot_sup, goal_temp, fee, max_run):
         self.lock.acquire()
         try:
             self.default_work_mode = word_mode
-            self.env_temp = env_temp
+            self.default_sp_mode = sp_mode
             self.cold_sub = cold_sub
             self.cold_sup = cold_sup
             self.hot_sub = hot_sub
             self.hot_sup = hot_sup
+            self.default_goal_temp = goal_temp
             self.fee_rates = self.fee_rates * fee
             self.max_run = max_run
         finally:
             self.lock.release()
 
     def add_service(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, temp_rate=TEMP_RATE)
-        if sp_mode != 1:
-            scheduler.add_job(change_temp_rate, 'interval', id=room_id + 'change_temp_rate', seconds=RATE_INTERVAL,
-                              args=[room_id])
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
+        # if sp_mode != 1:
+        #     scheduler.add_job(change_temp_rate, 'interval', id=room_id + 'change_temp_rate', seconds=RATE_INTERVAL,
+        #                       args=[room_id])
+        if sp_mode == 0:
+            s.temp_rate = TEMP_RATE * 0.8
+        elif sp_mode == 2:
+            s.temp_rate = TEMP_RATE * 1.2
         # 修改工作状态
         s.set_is_work(1)
         s.change_fan_spd(sp_mode)
@@ -91,7 +94,7 @@ class MainMachine:
         self.service_queue.append(s)
 
     def add_wait(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, timer=True):
-        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode, temp_rate=TEMP_RATE)
+        s = Slave(room_id=room_id, phone_num=phone_num, req_time=req_time, sp_mode=sp_mode)
         logger.info("room_id: " + str(room_id) + "添加到等待队列")
         if timer:
             s.wait_timer = True
@@ -121,8 +124,8 @@ class MainMachine:
     def delete_service(self, room_id: str):
         for i in range(len(self.service_queue)):
             if self.service_queue[i].room_id == room_id:
-                if self.service_queue[i].sp_mode != 1:
-                    scheduler.remove_job(job_id=room_id + 'change_temp_rate')
+                # if self.service_queue[i].sp_mode != 1:
+                #     scheduler.remove_job(job_id=room_id + 'change_temp_rate')
                 return self.service_queue.pop(i)
 
     def delete_wait(self, room_id: str):
@@ -168,6 +171,7 @@ class MainMachine:
             # 风速最低，服务时间最长的拍第0
             self.service_queue.sort(key=attrgetter('sp_mode', 'req_time'))
             if self.service_queue[0].sp_mode < sp_mode:
+                # 优先级更高，要添加计时器
                 self.move_to_wait(self.service_queue[0].room_id)
                 self.add_service(room_id, phone_num, req_time, sp_mode)
             elif self.service_queue[0].sp_mode == sp_mode:
@@ -179,27 +183,28 @@ class MainMachine:
 
     # 结束等待的请求，返回来处理
     def wait_over(self, room_id):
-        # 风速最低，服务时间最长的排第0
         self.false_wait_timer(room_id)
+        # 风速最低，服务时间最长的排第0
         self.service_queue.sort(key=attrgetter('sp_mode', 'req_time'))
         s = self.get_slave(room_id)
+        # 如果风速最低，服务时间最长的请求风速小于等于结束等待的请求，就处理
         if self.service_queue[0].sp_mode <= s.sp_mode:
             self.move_to_wait(self.service_queue[0].room_id)
             self.move_to_service(room_id)
 
-    def change_rate(self, room_id):
-        machine.lock.acquire()
-        try:
-            for item in self.service_queue:
-                if item.room_id == room_id:
-                    if item.sp_mode == 0:
-                        item.temp_rate *= 0.8
-                    elif item.sp_mode == 2:
-                        item.temp_rate *= 1.2
-                    logger.info("room_id: " + str(room_id) + " 温度变化率: " + str(item.temp_rate))
-                    return
-        finally:
-            self.lock.release()
+    # def change_rate(self, room_id):
+    #     machine.lock.acquire()
+    #     try:
+    #         for item in self.service_queue:
+    #             if item.room_id == room_id:
+    #                 if item.sp_mode == 0:
+    #                     item.temp_rate -= TEMP_RATE * 0.2
+    #                 elif item.sp_mode == 2:
+    #                     item.temp_rate += TEMP_RATE * 0.2
+    #                 logger.info("room_id: " + str(room_id) + " 温度变化率: " + str(item.temp_rate))
+    #                 return
+    #     finally:
+    #         self.lock.release()
 
     def get_queue_pos(self, room_id):
         for item in self.service_queue:
@@ -293,10 +298,9 @@ class MainMachine:
         try:
             s = self.get_slave(room_id)
             curr_temp = s.get_curr_temp()
-            env_temp = self.env_temp
-            off_rate = self.off_rate
+            env_temp = config.room_temp[room_id]
             if math.isclose(env_temp, curr_temp) is not True:
-                curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
+                curr_temp = cal_curr_temp(curr_temp, env_temp, TEMP_RATE)
                 s.set_curr_temp(curr_temp)
                 logger.info("room_id: " + str(room_id) + "等待中, 当前温度: " + str(curr_temp))
         finally:
@@ -316,15 +320,14 @@ class MainMachine:
             s = self.get_slave(room_id)
             curr_temp = s.get_curr_temp()
             goal_temp = s.get_goal_temp()
-            env_temp = self.env_temp
-            off_rate = self.off_rate
+            env_temp = config.room_temp[room_id]
             #  和目标温度温差尚未达到1度
             if math.fabs(goal_temp - curr_temp) < 1:
                 # 未回落到室温
                 if math.isclose(env_temp, curr_temp) is not True:
-                    curr_temp = cal_curr_temp(curr_temp, env_temp, off_rate)
+                    curr_temp = cal_curr_temp(curr_temp, env_temp, TEMP_RATE)
                     s.set_curr_temp(curr_temp)
-                    logger.info("room_id: " + str(room_id) + "向室温回落到" + str(curr_temp))
+                    logger.info("room_id: " + str(room_id) + "暂停后向室温回落到" + str(curr_temp))
         finally:
             self.lock.release()
 
@@ -335,7 +338,6 @@ class MainMachine:
             if s is not None:
                 s.set_is_work(None)
                 s.set_is_on(False)
-                s.set_curr_temp(self.env_temp)
             self.delete_if_exists(room_id)
             self.wait_to_service()
         finally:
@@ -348,7 +350,7 @@ class MainMachine:
             s = self.get_slave(room_id)
             s.set_is_on(True)
             s.change_goal_temp(goal_temp)
-            s.set_curr_temp(self.env_temp)
+            s.set_curr_temp(config.room_temp[room_id])
             s.change_work_mode(work_mode)
             return s.get_is_work()
         finally:
@@ -398,6 +400,8 @@ class MainMachine:
             self.lock.release()
 
 
+
+
 machine = MainMachine()
 
 
@@ -405,8 +409,8 @@ def cal_service_cost_temp(room_id, phone_num):
     machine.cal_cost_and_temp(room_id, phone_num)
 
 
-def change_temp_rate(room_id):
-    machine.change_rate(room_id)
+# def change_temp_rate(room_id):
+#     machine.change_rate(room_id)
 
 
 # 等待时温度变化
@@ -422,6 +426,20 @@ def finish_wait(room_id):
 # 达到目标温度后温度变化
 def cal_pause_temp(room_id):
     machine.cal_pause_temp(room_id)
+
+
+def cal_off_temp(room_id):
+    state = State.objects.get(room_id=room_id)
+    curr_temp = state.curr_temp
+    env_temp = config.room_temp[room_id]
+    if math.isclose(env_temp, curr_temp) is not True:
+        curr_temp = cal_curr_temp(curr_temp, env_temp, TEMP_RATE)
+        state.curr_temp = curr_temp
+        state.save()
+        logger.info("room_id: " + str(room_id) + "关机后向室温回落到" + str(curr_temp))
+        return curr_temp
+    else:
+        return env_temp
 
 
 def cal_curr_temp(curr_temp, target_temp, rate):

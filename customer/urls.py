@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import power_off, customer, poll, get_default, power_on, change_fan_speed, \
-    change_goal_temp, change_work_mode, pause, re_start
+    change_goal_temp, change_work_mode, pause, re_start, off_rate, verify
+
 urlpatterns = [
     path('', customer),
     path('power_on', power_on),
@@ -12,4 +13,6 @@ urlpatterns = [
     path('change_work_mode', change_work_mode),
     path('pause', pause),
     path('re_start', re_start),
+    path('off_rate', off_rate),
+    path('verify', verify),
 ]

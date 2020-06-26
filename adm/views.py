@@ -14,7 +14,8 @@ logger = logging.getLogger('collect')
 def set_params(request):
     if request.method == 'POST':
         work_mode = int(request.POST.get('work_mode', None))
-        env_temp = int(request.POST.get('env_temp', None))
+        sp_mpde = int(request.POST.get('sp_mode', None))
+        goal_temp = int(request.POST.get('goal_temp', None))
         cold_sub = int(request.POST.get('cold_sub', None))
         cold_sup = int(request.POST.get('cold_sup', None))
         hot_sub = int(request.POST.get('hot_sub', None))
@@ -22,13 +23,10 @@ def set_params(request):
         fee = int(request.POST.get('fee', None))
         print(type(fee))
         max_run = int(request.POST.get('max_run', None))
-        print(work_mode, env_temp, cold_sub)
-        machine.set_params(word_mode=work_mode, env_temp=env_temp, cold_sub=cold_sub, cold_sup=cold_sup,
-                           hot_sub=hot_sub, hot_sup=hot_sup, fee=fee, max_run=max_run)
+        machine.set_params(word_mode=work_mode, sp_mode=sp_mpde, cold_sub=cold_sub, cold_sup=cold_sup,
+                           hot_sub=hot_sub, goal_temp=goal_temp,hot_sup=hot_sup, fee=fee, max_run=max_run)
         return JsonResponse({'code': '200', 'msg': 'ok'})
 
-
-@csrf_exempt
 
 @csrf_exempt
 @login_required(login_url="/login")

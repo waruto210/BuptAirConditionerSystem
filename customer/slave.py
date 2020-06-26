@@ -1,16 +1,18 @@
 from operator import attrgetter
 from customer.models import State
+from airconfig.config import config
+TEMP_RATE = config.temp_rate
 
 
 class Slave:
-    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int, temp_rate):
+    def __init__(self, room_id: str, phone_num: str, req_time: int, sp_mode: int):
         self.room_id = room_id
         self.phone_num = phone_num
         # 接受送风服务的开始时间或者 无送风服务的等待开始时间
         self.req_time = req_time
         self.sp_mode = sp_mode
         self.inverse_sp = 2 - sp_mode
-        self.temp_rate = temp_rate # 默认的每分钟温度变化率
+        self.temp_rate = TEMP_RATE # 默认的每分钟温度变化率
         self.wait_timer = False
 
     def init_state(self, room_id, goal_temp, curr_temp, sp_mode, work_mode):
