@@ -45,11 +45,11 @@
                  "get": ""
              },
              datatype: 'json',
-             success: function (alldata) {
+             success: function (data) {
                  var artTable = document.getElementById("tb");
                  var artBody=artTable.tBodies[0];
                  artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
-                 var all_li = eval(alldata);
+                 var all_li = eval(data);
                  var all_list = eval(all_li.all_data);
                  var tb = document.getElementById('tb');
                  var body = tb.querySelector('tbody');
@@ -87,53 +87,67 @@
 
      }
 
-     function getinfo(){
+     function getinfo() {
          var a = document.getElementById("checkroom");
+         var infotable = document.getElementById("tb");
+         var data = [];
+         for (var i = 0, rows = infotable.rows.length; i < rows; i++) {
+             for (var j = 0, cells = infotable.rows[i].cells.length; j < cells; j++) {
+                 if (!data[i]) {
+                     data[i] = new Array();
+                 }
+                 data[i][j] = infotable.rows[i].cells[j].innerHTML;
+             }
+         }
          $.ajax({
              type: 'POST',
-                url:'checkInfo',
-                data:{
-                    'room_id': a.value
-                },
-                datatype: 'json',
-             success: function(data){
+             url: 'checkInfo',
+             data: {
+                 'room_id': a.value
+             },
+             datatype: 'json',
+             success: function () {
                  var artTable = document.getElementById("tb1");
-                 var artBody=artTable.tBodies[0];
+                 var artBody = artTable.tBodies[0];
                  artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
-                 $("#room_list").html('');
-                 var me_li = data.data;
-                 var message_list = eval(me_li);
-                 for(let i = 0;i<message_list.length;i++){
-                     var fie = message_list[i].fields;
-                     var tb = document.getElementById('tb1');
-                     var body = tb.querySelector('tbody');
-                     var tr = document.createElement('tr');
-                     var td1 = document.createElement('th',scope="col");
-                     var td2 = document.createElement('td');
-                     var td3 = document.createElement('td');
-                     var td4 = document.createElement('td');
-                     var td5 = document.createElement('td');
-                     var td6 = document.createElement('td');
-                     var td7 = document.createElement('td');
-                     var td8 = document.createElement('td');
+                 console.log("aaa");
 
-                     td1.innerHTML = message_list[i].pk;
-                     td2.innerHTML = fie.is_on;
-                     td3.innerHTML = fie.goal_temp;
-                     td4.innerHTML = fie.curr_temp;
-                     td5.innerHTML = fie.sp_mode;
-                     td6.innerHTML = fie.work_mode;
-                     td7.innerHTML = fie.total_cost;
+                 for (var i = 0; i < data.length; i++) {
+                     if (data[i][0] == a.value) {
+                         $("#room_list").html('');
 
-                     tr.append(td1); tr.append(td2); tr.append(td3); tr.append(td4);
-                     tr.append(td5); tr.append(td6); tr.append(td7);
-                     body.append(tr);
-                     //var is_on = fie.is_on;
-                     //console.log(fie);
-                     //$("#room_list").html($("#room_list").html() + "<p>"+"<b>" + "是否开启 : "+"</b>"+is_on+"</p>")
+                         var tb = document.getElementById('tb1');
+                         var body = tb.querySelector('tbody');
+                         var tr = document.createElement('tr');
+                         var td1 = document.createElement('th', scope = "col");
+                         var td2 = document.createElement('td');
+                         var td3 = document.createElement('td');
+                         var td4 = document.createElement('td');
+                         var td5 = document.createElement('td');
+                         var td6 = document.createElement('td');
+                         var td7 = document.createElement('td');
+                         var td8 = document.createElement('td');
+                         td1.innerHTML = data[i][0];
+                         td2.innerHTML = data[i][1];
+                         td3.innerHTML = data[i][2];
+                         td4.innerHTML = data[i][3];
+                         td5.innerHTML = data[i][4];
+                         td6.innerHTML = data[i][5];
+                         td7.innerHTML = data[i][6];
+
+                         tr.append(td1);
+                         tr.append(td2);
+                         tr.append(td3);
+                         tr.append(td4);
+                         tr.append(td5);
+                         tr.append(td6);
+                         tr.append(td7);
+                         body.append(tr);
+                     }
                  }
              }
          })
+
      }
 
      function eachTableRow()
@@ -159,7 +173,7 @@
         //递归，每5s更新一次信息
          checkinfo();
           a = window.setTimeout("loop_check()", 5000);
-
+          //window.clearTimeout(a);
      }
      loop_check();
 
