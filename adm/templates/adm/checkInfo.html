@@ -74,11 +74,17 @@
 
                         td1.innerHTML = all_list[i].pk;
                         td2.innerHTML = fie.is_on;
-                        td3.innerHTML = fie.goal_temp.toFixed(2);
-                        td4.innerHTML = fie.curr_temp.toFixed(2);
+                        if(typeof(fie.goal_temp) == 'number')
+                            td3.innerHTML = fie.goal_temp.toFixed(2);
+                        else td3.innerHTML = fie.goal_temp;
+                        if(typeof(fie.cur_temp) == 'number')
+                            td4.innerHTML = fie.cur_temp.toFixed(2);
+                        else td4.innerHTML = fie.cur_temp;
                         td5.innerHTML = fie.sp_mode;
                         td6.innerHTML = fie.work_mode;
-                        td7.innerHTML = fie.total_cost.toFixed(2);
+                        if(typeof(fie.total_cost) == 'number')
+                            td7.innerHTML = fie.total_cost.toFixed(2);
+                        else td7.innerHTML = fie.total_cost;
 
                         console.log(typeof(fie.total_cost));
 
@@ -103,11 +109,17 @@
                             var t8 = document.createElement('td');
                             t1.innerHTML = all_list[i].pk;
                             t2.innerHTML = fie.is_on;
+                            if(typeof(fie.goal_temp) == 'number')
                             t3.innerHTML = fie.goal_temp.toFixed(2);
-                            t4.innerHTML = fie.curr_temp.toFixed(2);
+                        else t3.innerHTML = fie.goal_temp;
+                        if(typeof(fie.cur_temp) == 'number')
+                            t4.innerHTML = fie.cur_temp.toFixed(2);
+                        else t4.innerHTML = fie.cur_temp;
                             t5.innerHTML = fie.sp_mode;
                             t6.innerHTML = fie.work_mode;
+                            if(typeof(fie.total_cost) == 'number')
                             t7.innerHTML = fie.total_cost.toFixed(2);
+                        else t7.innerHTML = fie.total_cost;
                             tr2.append(t1);
                             tr2.append(t2);
                             tr2.append(t3);
