@@ -14,7 +14,6 @@ from django.core import serializers
 logger = logging.getLogger('collect')
 CAL_INTERVAL = config.cal_interval
 WAIT_INTERVAL = config.wait_interval
-RATE_INTERVAL = config.rate_interval
 TEMP_RATE = config.temp_rate
 
 
@@ -27,7 +26,8 @@ class MainMachine:
         self.lock = threading.RLock()
         # 默认参数
         # self.off_rate = TEMP_RATE  # 停止送风后室温变化率
-        self.power_on = True
+        self.power_on = False
+        self.init = False
         self.default_work_mode = 0
         self.default_sp_mode = 1
         self.default_goal_temp = 25
@@ -50,13 +50,14 @@ class MainMachine:
     def is_on(self):
         self.lock.acquire()
         try:
-            return self.power_on
+            return ((self.power_on is True) and (self.init is True))
         finally:
             self.lock.release()
 
     def init_default(self, is_on):
         self.lock.acquire()
         try:
+            logger.info("main power")
             self.power_on = is_on
         finally:
             self.lock.release()
@@ -73,8 +74,10 @@ class MainMachine:
             self.hot_sup = hot_sup
             self.default_goal_temp = goal_temp
             for i in range(3):
-                self.fee_rates[i] = fee*self.fee_rates[i]
+                self.fee_rates[i] = fee * self.fee_rates[i]
             self.max_run = max_run
+            logger.info("main init")
+            self.init = True
         finally:
             self.lock.release()
 

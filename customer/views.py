@@ -3,9 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import Customer, State, init_state
 from django.views.decorators.csrf import csrf_exempt
-import math
 from master.mainMachine import machine, cal_service_cost_temp, cal_wait_temp, cal_pause_temp, cal_off_temp
-import datetime
 import logging
 from record_manager.RecordManager import RecordManager
 from airconfig.config import config
@@ -219,7 +217,7 @@ def customer(request):
         if machine.is_on():
             return render(request, "customer/index_copy.html")
         else:
-            return HttpResponse("中央空调未开机")
+            return HttpResponse("中央空调未开机或者未初始化，请联系酒店人员")
 
 
 @csrf_exempt
