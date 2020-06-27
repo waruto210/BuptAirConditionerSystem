@@ -37,6 +37,7 @@ def checkin(request):
             return render(request, 'reception/checkin.html',context)
         customer = create_customer(room_id,customer_name,phone_num)
         # 设置入住状态
+
         state = State.objects.get(room_id=room_id)
         state.busy = True
         state.save()
