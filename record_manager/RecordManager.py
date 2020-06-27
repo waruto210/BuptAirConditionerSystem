@@ -1,7 +1,7 @@
 '''
 @Author: your name
 @Date: 2020-06-25 23:03:29
-@LastEditTime: 2020-06-26 20:35:01
+@LastEditTime: 2020-06-27 09:54:03
 @LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: /django-air/record_manager/RecordManager.py
@@ -77,9 +77,8 @@ class RecordManager:
         choice=choice,common_spd=common_spd,achieve_count=achieve_count,schedule_count=schedule_count,
         ticket_count=ticket_count,total_cost=total_cost)
         r.save()
-
-    def calc_bill(room_id,phone_num):
-        tickets = list(Ticket.objects.filter(room_id=room_id,phone_num=phone_num))
+    def calc_bill(room_id,phone_num,checkin_date):
+        tickets = list(Ticket.objects.filter(room_id=room_id,phone_num=phone_num,start_time__gte=checkin_date))
         total_cost = 0.
         total_use = 0
         for ticket in tickets:
@@ -88,7 +87,5 @@ class RecordManager:
         return total_cost, total_use
 
     @staticmethod
-    def get_tickets(room_id,phone_num):
-        return list(get_all_ticket(room_id,phone_num))
-
-
+    def get_tickets(room_id,phone_num,checkin_date):
+        return list(Ticket.objects.filter(room_id=room_id,phone_num=phone_num,start_time__gte=checkin_date))

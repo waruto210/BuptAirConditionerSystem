@@ -34,24 +34,24 @@
 {% endblock navibar %}
 
 {% block page-wrapper %}
-    {% if context %}
-        {% if context.type == "success" %}
-            <div class="alert alert-success alert-dismissable">
-                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                【成功】：{{ context.message }}
-                <a href="/reception/index" class="alert-link">返回主界面</a>
-            </div>
-        {% endif %}
-        {% if context.type == "error" %}
-            <div class="alert alert-danger alert-dismissable">
-                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                【错误】：{{ context.message }}
-                <a href="/reception/checkin" class="alert-link">重新输入</a>
-            </div>
-        {% endif %}
-    {% endif %}
     <div class="check-in-form">
         <form action="/reception/checkin" method="post">
+            {% if context %}
+                {% if context.type == "success" %}
+                    <div class="alert alert-success alert-dismissable">
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        【成功】：{{ context.message }}
+                        <a href="/reception/index" class="alert-link">返回主界面</a>
+                    </div>
+                {% endif %}
+                {% if context.type == "error" %}
+                    <div class="alert alert-danger alert-dismissable">
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        【错误】：{{ context.message }}
+                        <a href="/reception/checkin" class="alert-link">重新输入</a>
+                    </div>
+                {% endif %}
+            {% endif %}
               <div class="form-row align-items-center">
                   {% csrf_token %}
                   <div class="col-auto">
