@@ -1,9 +1,10 @@
 from django.db import models
 from customer.models import StatisicDay,Record
+import logging
+from django.core import serializers
+logger = logging.getLogger('collect')
 
 # Create your models here.
-
-
 
 def add_report(rooms_info):
     for room in rooms_info:
@@ -24,7 +25,8 @@ def add_report(rooms_info):
     return r
 
 def add_day_report(date):
-    r1 = list(Record.objects.filter(date__day=date))
+    r1 = list(Record.objects.filter(at_time__startswith=date))
+    logger.info("date" +str(len(r1)))
     room_list = []
     rooms_info = []
     for i in r1:
@@ -33,7 +35,7 @@ def add_day_report(date):
     for room in room_list:
         r_info = {'report_type':'d','date':date,'oc_count':0,'temp_dict':{},'sp_dict':{},
                     'achieve_count':0,'ticket_count':0,'total_cost':0,'schedule_count':0}
-        r3 = list(Record.objects.filter(room=room,date__day=date))
+        r3 = list(Record.objects.filter(room=room,at_time__day=date))
         r4 = list(Ticket.objects.filter(room=room,start_time__day=date))
         for i in r3:
             if i.record_type == 'power_on':
@@ -54,11 +56,15 @@ def add_day_report(date):
 
 # 查询不同类型的报表
 def get_reports(date_from,date_to,report_type):
+    dfrom = date_from.split('/')
+    date_from = dfrom[2]+'-'+dfrom[0]+'-'+dfrom[1]
+    res = []
     if report_type == 'd':
-        res = StatisicDay.objects.filter(date__day=date_from)
+        res = list(StatisicDay.objects.filter(date=date_from))
+        #logger.info("res: " + res[0])
         if res ==[]:
             res = add_day_report(date_from)
-        return res
+        logger.info("reschangdu:",str(res))
     elif report_type == 'w':
         # for i in range((date_to - date_from).days + 1):
         #     day = date_from + datetime.timedelta(days=i)
@@ -69,7 +75,7 @@ def get_reports(date_from,date_to,report_type):
         pass
     elif report_type == 'y':
         pass
-
+    return serializers.serialize("json", res)
 
 
 

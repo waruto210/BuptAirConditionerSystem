@@ -83,7 +83,7 @@ class StatisicDay(models.Model):
     # 类型
     report_type = models.CharField(max_length=20)
     # 时间范围
-    date = models.IntegerField()
+    date = models.DateField()
 
 
 class Ticket(models.Model):

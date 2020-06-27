@@ -1,13 +1,11 @@
 /*
  * @Author: your name
- * @Date: 2020-06-26 21:17:53
- * @LastEditTime: 2020-06-26 23:36:07
+ * @Date: 2020-06-27 10:25:47
+ * @LastEditTime: 2020-06-27 11:05:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: /django-air/manager/static/manager/js/action.js
+ * @FilePath: /django-air/static/js/action.js
  */ 
-
-
 
 
 $(document).ready(function() {
@@ -20,16 +18,15 @@ $(document).ready(function() {
         date_from = $date_from.val();
         date_to = $date_to.val();
         console.log('sadwedwedw')
-        console.log(date_from,date_to,'ssssss')
-        postgetdayrpt(date_from,date_to,'d')
+        console.log(date_from,date_to,'aaaaa')
+        postgetrpt(date_from,date_to,'d')
     })
 })
-
 
 function postgetrpt(date_from,date_to,r_type){
     console.log("查询报表");
     $.ajax({
-        url: 'get_reports',
+        url: 'get_rpt',
         type: 'POST',
         dataType: 'JSON',
         data: {
@@ -42,3 +39,4 @@ function postgetrpt(date_from,date_to,r_type){
         }
     })
 }
+
