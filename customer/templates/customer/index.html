@@ -21,7 +21,7 @@
     
 
     {% load static %}
-    <script src="{% static 'customer/action.js' %}"></script>
+    <script src="{% static 'customer/action' %}"></script>
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>空调管理系统</title>
@@ -53,7 +53,7 @@
             <button type="button" id="room_id_btn" class="btn btn-success" style="right: 600px;">确认房间号</button>
          </div>
          <div id = "panel"class="card text-white bg-info mb-3" style="max-width: 900px;height:500px;margin-left: 120px;">
-             <div class="card-body" position:relative>
+             <div class="card-body" style="position:relative" >
                <h5 class="card-title">空调面板</h5>
                 <div class="row">
                     <h6 id="air_state"> 未开机</h6>
@@ -66,7 +66,7 @@
                  <div class="col-sm-6">
                     <span style="font-size:30px">目标温度</span> </span><span id = "goal_temp" style="font-size:50px;"> 25 </span>
                     <span style="font-size:50px;">℃</span>
-                   <span class="glyphicon glyphicon-cloud">
+                     <span class="glyphicon glyphicon-cloud"></span>
                  </div>
                </div>
                
@@ -81,7 +81,7 @@
                 <div class="col-sm-6">
                    <span style="font-size:30px">室内温度</span></span><span id = "curr_temp" style="font-size:50px;"> {{ env_temp }} </span>
                    <span style="font-size:50px;">℃</span>
-                   <span class="glyphicon glyphicon-cloud">
+                    <span class="glyphicon glyphicon-cloud"> </span>
                 </div>
               </div>
               <div class="hr-line-dashed" style="background-color: rgb(106, 118, 126);height: 2px;"></div>

@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import set_temp,checkinfo,setdefault,adm,openclose
+from django.conf.urls import url
+from .views import set_params,checkinfo,setdefault,adm,openclose
 urlpatterns = [
-    path('settemp', set_temp),
-    path('',adm),
+    path('set_params', set_params),
+    path('index',adm),
     path('checkInfo',checkinfo),
     path('setdefault',setdefault),
-    path('openclose',openclose)
+    path('openclose',openclose),
 ]

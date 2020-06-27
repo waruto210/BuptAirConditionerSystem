@@ -1,50 +1,43 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.contrib import auth
+'''
+@Author: your name
+@Date: 2020-06-01 16:17:42
+@LastEditTime: 2020-06-27 15:17:18
+@LastEditors: Please set LastEditors
+@Description: In User Settings Edit
+@FilePath: /django-air/manager/views.py
+'''
+from django.shortcuts import render
+import datetime
+from record_manager.RecordManager import RecordManager
 from django.contrib.auth.decorators import login_required
-from customer.models import Customer
+from django.views.decorators.csrf import csrf_exempt
+import logging
+from .models import get_reports
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
+
+logger = logging.getLogger('collect')
 
 # Create your views here.
 
-@login_required(login_url="/login")
-def index(request):
-    if request.method == 'GET':
-        cust_list = Customer.objects.all()
-        paginator = Paginator(cust_list, 10, 1)
-        page = request.GET.get('page')
-        try:
-            customer = paginator.page(page)
-        except PageNotAnInteger:
-            customer = paginator.page(1)
-        except EmptyPage:
-            customer = paginator.page(paginator.num_pages)
-        return render(request, 'manager/index.html',{"cust_list": cust_list})
-
-@login_required(login_url="/login")
-def add(request):
-    if request.method == 'GET':
-        print(request.user)
-        return render(request, 'manager/add.html')
+@csrf_exempt
+def get_rpt(request):
     if request.method == 'POST':
-        customer_name = request.POST.get('c_name',None)
-        room_id = request.POST.get('r_id',None)
-        print(customer_name + ' ' + room_id)
-        print(type(Customer))
-        customer = Customer.objects.create(RoomId=room_id)
+        report_type = request.POST.get('r_type',None)
+        date_from =  request.POST.get('date_from',None)
+        report_list = get_reports(date_from,report_type)
+        ret = {
+            'code': 200,
+            'msg': 'ok',
+            'data': report_list
+        }
+        
+        return JsonResponse(ret)
+        
 
-        customer.Name = customer_name
-        print(customer_name + ' ' + room_id)
-        customer.save()
-        if customer:
-            return render(request, 'manager/index.html')
 
+    
+def index(request):
+     return render(request, "manager/index.html")
 
-@login_required(login_url="/login")
-def checkout(request):
-    if request.method == 'GET':
-        room_id = request.GET.get('room_id')
-        customer = Customer.objects.filter(RoomId=room_id)
-        print(customer)
-        customer.delete()
-        return render(request, 'manager/checkout.html')

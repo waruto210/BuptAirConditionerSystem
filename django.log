@@ -1,0 +1,6 @@
+2020-05-26 00:37:44,599 autoreload.run_with_reloader 598 INFO    => Watching for file changes with StatReloader
+2020-05-26 00:37:44,711 base.start 166 INFO    => Scheduler started
+2020-05-26 00:37:44,776 server.run 111 INFO    => HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+2020-05-26 00:37:44,776 server.run 119 INFO    => Configuring endpoint tcp:port=8000:interface=127.0.0.1
+2020-05-26 00:37:44,777 server.listen_success 153 INFO    => Listening on TCP address 127.0.0.1:8000
+2020-05-26 00:42:15,210 autoreload.trigger_reload 222 INFO    => /Users/wmc/vscode/django/django-air/django_air/settings.py changed, reloading.

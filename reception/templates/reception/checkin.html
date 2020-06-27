@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block style %}
+<style>
+.check-in-form
+{
+  width: 60%;
+  height: 60%;
+  padding: 40px;
+  overflow: auto;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 500px; bottom: 0; right: 0;
+}
+</style>
+{% endblock style %}
+{% block title %}客户入住{% endblock title %}
+
+{% block navibar %}
+    <li class="treeview">
+        <a href="/reception/index">
+            <i class="fa fa-dashboard"></i> <span>主页</span>
+        </a>
+    </li>
+    <li class="treeview">
+        <a href="/reception/checkin">
+            <i class="fa fa-dashboard"></i> <span>客户入住</span>
+        </a>
+    </li>
+{% endblock navibar %}
+
+{% block page-wrapper %}
+    <div class="check-in-form">
+        <form action="/reception/checkin" method="post">
+            {% if context %}
+                {% if context.type == "success" %}
+                    <div class="alert alert-success alert-dismissable">
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        【成功】：{{ context.message }}
+                        <a href="/reception/index" class="alert-link">返回主界面</a>
+                    </div>
+                {% endif %}
+                {% if context.type == "error" %}
+                    <div class="alert alert-danger alert-dismissable">
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                        【错误】：{{ context.message }}
+                        <a href="/reception/checkin" class="alert-link">重新输入</a>
+                    </div>
+                {% endif %}
+            {% endif %}
+              <div class="form-row align-items-center">
+                  {% csrf_token %}
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInput">Name</label>
+                      <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Customer Name" name="c_name">
+                  </div>
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInput">PhoneNum</label>
+                      <input type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Phone Number" name="phone_num">
+                  </div>
+                  <div class="col-auto">
+                      <label class="sr-only" for="inlineFormInputGroup">RoomID</label>
+                      <div class="input-group mb-2">
+                          <div class="input-group-prepend">
+                              <div class="input-group-text">@</div>
+                          </div>
+                          <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="RoomId" name="r_id">
+                      </div>
+                  </div>
+                  <div class="col-auto">
+                      <button type="submit" class="btn btn-primary mb-2">入住</button>
+                  </div>
+              </div>
+        </form>
+    </div>
+{% endblock page-wrapper %}

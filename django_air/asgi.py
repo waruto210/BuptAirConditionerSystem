@@ -1,5 +1,5 @@
 """
-ASGI config for django_auth project.
+ASGI airconfig for django_auth project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -8,10 +8,9 @@ https://docs.djangoproject.com/en/3.0/howto/deployment/asgi/
 """
 
 import os
-import django
 
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_air.settings')
-django.set_up()
+
 application = get_asgi_application()

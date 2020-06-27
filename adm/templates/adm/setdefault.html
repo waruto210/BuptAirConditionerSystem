@@ -1,5 +1,5 @@
 {% extends 'adm/index.html' %}
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
 
@@ -7,23 +7,28 @@
     <title>Title</title>
 </head>
 <body>
-{% block content %}
-    <div style="width:100%;text-align:center">
-<form action="../../static/adm/setdefault.js " method="get">
-    <div>设置默认温度: <input type="text" name="fname" /></div>
+{% block page-wrapper %}
+    <div style="width:100%;text-align:center" >
+<!--<p action="../../static/adm/setdefault.js " method="post">-->
+<form action="/adm/set_params" method="post">
+    {%csrf_token%}
+    <div>设置默认温度: <input type="text" name="env_temp" /></div>
     <div>设置默认风速:
-        <input type="checkbox" name="风速" value="小风" /> 小风
-        <input type="checkbox" name="风速" value="中风"  />中风
-        <input type="checkbox" name="风速" value="大风"  />大风
-        </div>
-    <div>设置默认模式:
-        <input type="checkbox" name="模式" value="制冷" /> 制冷模式
-        <input type="checkbox" name="模式" value="制热"  /> 制热模式
+        <input type="text" name="sp_mode"/>0为低风/1为中风/2为高风
     </div>
+    <div>设置默认模式:
+         <input type="text" name="work_mode" />0为制冷/1为制热
+    </div>
+    <div>设置制冷最高温度: <input type="text" name="cold_sup" /></div>
+    <div>设置制冷最低温度: <input type="text" name="cold_sub" /></div>
+    <div>设置制热最高温度: <input type="text" name="hot_sup" /></div>
+    <div>设置制热最低温度: <input type="text" name="hot_sub" /></div>
+    <div>设置默认费率:<input type="text" name="fee"/></div>
+    <div>设置最大同时服务房间数:<input type="text" name="max_run"/></div>
     <input type="submit" value="提交" />
+
 </form>
     </div>
-{% endblock content %}
-
+{% endblock page-wrapper %}
 </body>
 </html>
