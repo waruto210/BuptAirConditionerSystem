@@ -7,15 +7,15 @@ pip install -r ./requirements.txt
 python manage.py runserver
 ```
 # 目前创建的账号
-wmc314@outlook.com
+reception@outlook.com
 123456
 会跳转reception/index.html
 
-dym@outlook.com
+adm@outlook.com
 123456
 会跳转adm/index.html
 
-myc@outlook.com
+manager@outlook.com
 123456
 会跳转manager/index.html
 # 日志
