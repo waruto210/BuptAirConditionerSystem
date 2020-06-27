@@ -508,22 +508,3 @@ function postPowerOn() {
         }
     });
 }
-
-
-//
-// function set_rate_timer() {
-//     if(is_rate_timer === false) {
-//         console.log('set rate_timer');
-//         rate_timer = setInterval(change_rate, RATE_CHANGE_INTERVAL*1000);
-//         is_rate_timer = true;
-//     }
-//
-// }
-//
-// function clear_rate_timer() {
-//     if(is_rate_timer === true) {
-//         console.log("clear rate_timer");
-//         clearInterval(rate_timer);
-//         is_rate_timer = false;
-//     }
-// }

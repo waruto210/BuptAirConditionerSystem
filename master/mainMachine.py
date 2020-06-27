@@ -196,20 +196,6 @@ class MainMachine:
             self.move_to_wait(self.service_queue[0].room_id)
             self.move_to_service(room_id)
 
-    # def change_rate(self, room_id):
-    #     machine.lock.acquire()
-    #     try:
-    #         for item in self.service_queue:
-    #             if item.room_id == room_id:
-    #                 if item.sp_mode == 0:
-    #                     item.temp_rate -= TEMP_RATE * 0.2
-    #                 elif item.sp_mode == 2:
-    #                     item.temp_rate += TEMP_RATE * 0.2
-    #                 logger.info("room_id: " + str(room_id) + " 温度变化率: " + str(item.temp_rate))
-    #                 return
-    #     finally:
-    #         self.lock.release()
-
     def get_queue_pos(self, room_id):
         for item in self.service_queue:
             if item.room_id == room_id:
