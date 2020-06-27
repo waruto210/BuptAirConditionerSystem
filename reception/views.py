@@ -20,7 +20,7 @@ def index(request):
             customer = paginator.page(1)
         except EmptyPage:
             customer = paginator.page(paginator.num_pages)
-        return render(request, 'reception/index.html', {"cust_list": cust_list})
+        return render(request, 'reception/index.html', {"cust_list": customer})
 
 @login_required(login_url="/login")
 def checkin(request):
@@ -50,7 +50,7 @@ def checkin(request):
                 customer = paginator.page(1)
             except EmptyPage:
                 customer = paginator.page(paginator.num_pages)
-            return render(request,'reception/index.html',{"cust_list": cust_list})
+            return render(request,'reception/index.html',{"cust_list": customer})
         return render(request, 'reception/checkin.html')
 
 

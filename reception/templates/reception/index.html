@@ -22,7 +22,7 @@
 
 {% block page-wrapper %}
 <div class="-simple-chart-holder" style="margin:auto" >
-    <table class="table table-hover" style="margin:auto">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col">#</th>
@@ -45,8 +45,10 @@
             </tr>
         {%endfor%}
     </table>
+    </nav>
+</div>
     <nav aria-label="Page navigation example">
-        <div class="pagination">
+        <div class="pagination footer">
             <ul class="pagination">
             {% if cust_list.has_previous %}
                 <li class="page-item"><a class="page-link" href="/reception/index?page={{cust_list.previous_page_number}}" aria-label="Previous">
@@ -67,6 +69,4 @@
               {% endif %}
             </ul>
         </div>
-    </nav>
-</div>
 {% endblock page-wrapper %}

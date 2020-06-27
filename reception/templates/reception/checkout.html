@@ -51,11 +51,11 @@
                   <p>id: {{ ticket.ticket_id }}</p>
                   <p><b>开始时间: </b>{{ ticket.start_time }}</p>
                   <p><b>结束时间: </b>{{ ticket.end_time }}</p>
-                  <p><b>持续时间: </b>{{ ticket.duration }}</p>
+                  <p><b>持续时间: </b>{{ ticket.duration }}秒</p>
                   <p><b>空调调度成功次数: </b>{{ ticket.schedule_count }}</p>
                   <p><b>风速模式: </b>{{ ticket.sp_mode }}</p>
                   <p><b>送风时间: </b>{{ ticket.service_duration }}</p>
-                  <p><b>计费金额: </b>{{ ticket.cost }}</p>
+                  <p><b>计费金额: </b>{{ ticket.cost |floatformat:2}}</p>
                   <br><br>
               {% endfor %}
           </div>
@@ -74,7 +74,7 @@
                     <li class="list-group-item"><b>入住时间</b>: {{ bill.checkin_date }}</li>
                     <li class="list-group-item"><b>退房时间</b>: {{ bill.checkout_date }}</li>
                     <li class="list-group-item"><b>空调使用时间</b>: {{ bill.total_use }}秒</li>
-                    <li class="list-group-item"><b>空调总费用</b>: {{ bill.total_cost }}</li>
+                    <li class="list-group-item"><b>空调总费用</b>: {{ bill.total_cost | floatformat:2}}</li>
                 </ul>
           </div>
         </div>
