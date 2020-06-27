@@ -85,7 +85,6 @@ class StatisicDay(models.Model):
     # 时间范围
     date = models.DateField()
 
-
 class Ticket(models.Model):
     """
         Ticket 详单类

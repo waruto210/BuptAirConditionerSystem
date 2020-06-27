@@ -1,17 +1,20 @@
 from django.db import models
-from customer.models import StatisicDay,Record
+from customer.models import StatisicDay,Record,Ticket
+from datetime import datetime,timedelta
 import logging
 from django.core import serializers
+from collections import defaultdict
 logger = logging.getLogger('collect')
 
 # Create your models here.
 
-def add_report(rooms_info):
+def add_reports(rooms_info):
     for room in rooms_info:
         room_id = room
         report_type = rooms_info[room]['report_type']
         date = rooms_info[room]['date']
         oc_count = rooms_info[room]['oc_count']
+        logger.info("oc_count: " +str(oc_count))
         common_temp = max(rooms_info[room]['temp_dict'],key=rooms_info[room]['temp_dict'].get)
         choice = max(rooms_info[room]['sp_dict'],key=rooms_info[room]['sp_dict'].get)
         achieve_count = rooms_info[room]['achieve_count']
@@ -19,62 +22,68 @@ def add_report(rooms_info):
         total_cost = rooms_info[room]['total_cost']
         schedule_count = rooms_info[room]['schedule_count']
         r = StatisicDay.objects.create(room_id=room_id, report_type=report_type,schedule_count=schedule_count,
-                date=date, oc_count=oc_count,common_temp=common_temp,choice=choice,
+                date=date, oc_count=oc_count,common_temp=common_temp, common_spd=choice,
                 achieve_count=achieve_count,ticket_count=ticket_count, total_cost= total_cost)
         r.save()
     return r
 
-def add_day_report(date):
-    r1 = list(Record.objects.filter(at_time__startswith=date))
-    logger.info("date" +str(len(r1)))
-    room_list = []
-    rooms_info = []
-    for i in r1:
-        if i.room_id not in room_list:
-            add_report(i.room_id,date)
-    for room in room_list:
-        r_info = {'report_type':'d','date':date,'oc_count':0,'temp_dict':{},'sp_dict':{},
-                    'achieve_count':0,'ticket_count':0,'total_cost':0,'schedule_count':0}
-        r3 = list(Record.objects.filter(room=room,at_time__day=date))
-        r4 = list(Ticket.objects.filter(room=room,start_time__day=date))
-        for i in r3:
-            if i.record_type == 'power_on':
-                r_info['oc_count'] += 1  #开关机次数
-            if i.record_type == 'goal_temp':
-                if i.duration:
-                    r_info['temp_dict'][i.goal_temp] += i.duration #常用目标温度
-                    r_info['achieve_count'] += 1 #达到目标温度次数
+def add_day_report(date,report_type):
 
-        for i in r4:
-            r_info['sp_dict'][i.sp_mode] += i.duration #常用风速
-            r_info['ticket_count'] += 1 #详单记录数
-            r_info['total_cost'] += i.cost # 总费用
-            r_info['schedule_count'] += i.schedule_count #成功调度次数
-        rooms_info[room] = r_info
-    add_reports(room_list,rooms_info)
-    return rooms_info
+    if report_type == 'd':
+        date_from,date_to = date,date
+    elif report_type == 'w':
+        date_from,date_to = date,date + timedelta(days=7)
+    elif report_type == 'm':
+        date_from,date_to = date,date + timedelta(days=30)
+    elif report_type == 'y':
+        date_from,date_to = date,date + timedelta(days=365)
+    logger.info("date_from: " +str(date_from))
+    logger.info("date_to: " +str(date_to))
+
+    rooms = list(StatisicDay.objects.filter(date__range=(date_from,date_to)))
+    if rooms ==[]:
+        r1 = list(Record.objects.filter(at_time__isstartswith__range=(date_from,date_to)))
+        logger.info("date" +str(date))
+        room_list = []
+        rooms_info = {}
+        for i in r1:
+            if i.room_id not in room_list:
+                room_list.append(i.room_id)
+
+        for room in room_list:
+            logger.info("room_id: " +room)
+            r_info = {'report_type':'d','date':date,'oc_count':0,'temp_dict':defaultdict(int),'sp_dict':defaultdict(int),
+                        'achieve_count':0,'ticket_count':0,'total_cost':0,'schedule_count':0}
+            r3 = list(Record.objects.filter(room_id=room,at_time__isstartswith__range=(date_from,date_to)))
+            r4 = list(Ticket.objects.filter(room_id=room,start_time__isstartswith__range=(date_from,date_to)))
+            for i in r3:
+                if i.record_type == 'power_on':
+                    r_info['oc_count'] += 1  #开关机次数
+                    logger.info("jinlaile " +str(r_info['oc_count']))
+                if i.record_type == 'goal_temp':
+                    if i.duration:
+                        r_info['temp_dict'][i.goal_temp] += i.duration #常用目标温度
+                        r_info['achieve_count'] += 1 #达到目标温度次数
+
+            for i in r4:
+                r_info['sp_dict'][i.sp_mode] += i.duration #常用风速
+                r_info['ticket_count'] += 1 #详单记录数
+                r_info['total_cost'] += i.cost # 总费用
+                r_info['schedule_count'] += i.schedule_count #成功调度次数
+            rooms_info[room] = r_info
+            logger.info("room_schedule_count: " +str(rooms_info[room]['schedule_count']))
+            logger.info("oc_count: " +str(r_info['oc_count']))
+            logger.info("goal_temp: " +str(r_info['achieve_count']))
+        add_reports(rooms_info)
+        rooms= [[a,b] for a,b in zip(list(rooms_info),list(rooms_info.values()))]
+    return rooms
 
 # 查询不同类型的报表
-def get_reports(date_from,date_to,report_type):
+def get_reports(date_from,report_type):
     dfrom = date_from.split('/')
-    date_from = dfrom[2]+'-'+dfrom[0]+'-'+dfrom[1]
-    res = []
-    if report_type == 'd':
-        res = list(StatisicDay.objects.filter(date=date_from))
-        #logger.info("res: " + res[0])
-        if res ==[]:
-            res = add_day_report(date_from)
-        logger.info("reschangdu:",str(res))
-    elif report_type == 'w':
-        # for i in range((date_to - date_from).days + 1):
-        #     day = date_from + datetime.timedelta(days=i)
-        #     res = StatisicDay.objects.filter(date__gt=date_from,date__lt=date)) 
-        #     if res == []:
-        pass
-    elif report_type == 'm':
-        pass
-    elif report_type == 'y':
-        pass
+    logger.info("dfrom: " +str(dfrom))
+    date_from = datetime(int(dfrom[2]),int(dfrom[0]),int(dfrom[1]))
+    res = add_day_report(date_from,report_type)
     return serializers.serialize("json", res)
 
 

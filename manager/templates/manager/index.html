@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2017-01-18 09:18:40
- * @LastEditTime: 2020-06-27 10:28:02
+ * @LastEditTime: 2020-06-27 16:02:24
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /tx201701313/index.html
@@ -13,13 +13,9 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="http://www.jq22.com/jquery/font-awesome.4.6.0.css">
-        <link href="/static/css/foundation-datepicker.css" rel="stylesheet" type="text/css">
-        <link href="/static/css/foundation.min.css" rel="stylesheet" type="text/css">
-		
+        
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="keywords" content="Glance Design Dashboard Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template,
-        SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
         <style>
             .name{
                 width: 600px;
@@ -48,6 +44,8 @@
         <!-- Metis Menu -->
         
         <script src="{% static 'js/metisMenu.min.js' %}"></script>
+        <link href="/static/css/foundation-datepicker.css" rel="stylesheet" type="text/css">
+        
        
     </head>
 	<body class="cbp-spmenu-push">
@@ -58,7 +56,6 @@
               <nav class="navbar navbar-inverse">
                   <div class="navbar-header">
                     <span class="sr-only">Toggle navigation</span>
-
                     </button>
                     <h1><a class="navbar-brand" href="#"><span class="fa fa-area-chart"></span>空调管理系统<span class="dashboard_text">Designed by 318D</span></a></h1>
                   </div>
@@ -71,7 +68,7 @@
                 <div class="sticky-header header-section ">
                     <div class="header-left">
                         <!--toggle button start-->
-                        <button id="showLeftPush"></button>
+                        <button id="showLeftPush"><i class="fa fa-bars"></i></button>
                         <!--toggle button end-->
                         <!--notification menu end -->
                         <div class="clearfix"> </div>
@@ -93,23 +90,31 @@
                                 
                                 <tr>&nbsp&nbsp
                                     <th>&nbsp&nbsp&nbsp&nbsp起始时间:
-                                        <input type="text" class="span2" value="" id="dpd1">
+                                        <input type="text" class="span2" id="dpd1">
                                     </th>
-                                    <th>&nbsp&nbsp&nbsp&nbsp终止时间:
-                                        <input type="text" class="span2" value="" id="dpd2">
-                                    </th>
+                                   
                                 </tr>
+                                
                             </thead>
+                            </table>
                         </form>
-                        </table></span>
-                        
+                        <br></br>
+                        </span>
+                    
                         <button type="button" id='rpt_day' class="btn btn-default"  style="float: right;">查询日报表</button></span>
+                        <button type="button" id='rpt_week' class="btn btn-default"  style="float: right;">查询周报表</button></span>
+                        <button type="button" id='rpt_month' class="btn btn-default"  style="float: right;">查询月报表</button></span>
+                        <button type="button" id='rpt_year' class="btn btn-default"  style="float: right;">查询年报表</button></span>
+                        <br></br>
+                        <button type="button" id='print_day' onclick="saveCode('tb', '日报表')" class="btn btn-default"  style="float: right;">导出日报表</button></span>
+                        <button type="button" id='print_week' onclick="saveCode('tb', '周报表')"class="btn btn-default"  style="float: right;">导出周报表</button></span>
+                        <button type="button" id='print_month' onclick="saveCode('tb', '月报表')"class="btn btn-default"  style="float: right;">导出月报表</button></span>
+                        <button type="button" id='print_year'onclick="saveCode('tb', '年报表')" class="btn btn-default"  style="float: right;">导出年报表</button></span>
                     
                 <div class="-simple-chart-holder" style="margin:auto" >
-                    <table class="table table-hover" style="margin:auto">
+                    <table id="tb" class="table table-hover" style="margin:auto">
                       <thead>
                         <tr>
-                            <th scope="col">#</th>
                             <th scope="col">房间号</th>
                             <th scope="col">使用次数</th>
                             <th scope="col">最常用目标温度</th>
@@ -121,19 +126,9 @@
                         </tr>
                       </thead>
                       <tbody>
-                      {%for item in report_list%}
-                            <tr>
-                                <td width="60px">{{forloop.counter}}</td>
-                                <td width="60px">{{ item.room_id }}</td>
-                                <td width="60px">{{ item.oc_count }}</td>
-                                <td width="60px">{{ item.common_temp }}</td>
-                                <td width="60px">{{ item.choice }}</td>
-                                <td width="60px">{{ item.achieve_count }}</td>
-                                <td width="60px">{{ item.schedule_count }}</td>
-                                <td width="60px">{{ item.ticket_count }}</td>
-                                <td width="60px">{{ item.total_cost }}</td>  
-                            </tr>
-                        {%endfor%}
+                          
+                      </tbody>
+        
                     </table>
 
                     
@@ -146,33 +141,19 @@
 
 		<script src="/static/js/jquery-1.11.3.min.js"></script>
         <script src="/static/js/foundation-datepicker.js"></script>
-        <script src="/static/js/action"></script>
+        
 		<script src="/static/js/locales/foundation-datepicker.zh-CN.js"></script>		
 		<script>
 
 		$('#demo-3').fdatepicker();
 		var nowTemp = new Date();
-		var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
-		var checkin = $('#dpd1').fdatepicker({
-			onRender: function (date) {
-				return date.valueOf() < now.valueOf() ? 'disabled' : '';
-			}
-		}).on('changeDate', function (ev) {
-			if (ev.date.valueOf() > checkout.date.valueOf()) {
-				var newDate = new Date(ev.date)
-				newDate.setDate(newDate.getDate() );
-				checkout.update(newDate);
-			}
+		var checkin = $('#dpd1').fdatepicker(
+		).on('changeDate', function (ev) {
+
 			checkin.hide();
-			$('#dpd2')[0].focus();
+			
 		}).data('datepicker');
-		var checkout = $('#dpd2').fdatepicker({
-			onRender: function (date) {
-				return date.valueOf() < checkin.date.valueOf() ? 'disabled' : '';
-			}
-		}).on('changeDate', function (ev) {
-			checkout.hide();
-		}).data('datepicker');
+		
         </script>
 
     <script src="{% static 'js/classie.js' %}"></script>
@@ -193,6 +174,199 @@
                 classie.toggle( showLeftPush, 'disabled' );
             }
         }
+    </script>
+    <script>
+
+$(document).ready(function() {
+    $rpt_day_btn = $("#rpt_day");
+    $rpt_week_btn = $("#rpt_week");
+    $rpt_month_btn = $("#rpt_month");
+    $rpt_year_btn = $("#rpt_year");
+
+    $date_from= $("#dpd1");
+
+    $rpt_day_btn.on("click", function() {
+        date_from = $date_from.val();
+        postgetrpt(date_from,'d')
+    })
+    $rpt_week_btn.on("click", function() {
+        date_from = $date_from.val();
+        postgetrpt(date_from,'w')
+    })
+
+    $rpt_month_btn.on("click", function() {
+        date_from = $date_from.val();
+        postgetrpt(date_from,'m')
+    })
+
+    $rpt_year_btn.on("click", function() {
+        date_from = $date_from.val();
+        postgetrpt(date_from,'y')
+    })
+})
+
+
+function postgetrpt(date_from,r_type){
+    console.log("查询报表");
+    $.ajax({
+        url: 'get_rpt',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            'date_from':date_from,
+            'r_type':r_type
+        },
+        success: function (data) {
+            console.log(data)
+            var artTable = document.getElementById("tb");
+            var artBody = artTable.tBodies[0];
+            artBody.parentNode.outerHTML = artBody.parentNode.outerHTML.replace(artBody.innerHTML, "");
+            var all_li = eval(data);
+            var all_list = eval(all_li.data);
+            var tb = document.getElementById('tb');
+            var body = tb.querySelector('tbody');
+            for (let i = 0; i < all_list.length; i++) {
+                var fie = all_list[i].fields;
+                var tr = document.createElement('tr');
+                var tr2 = document.createElement('tr');
+                var td1 = document.createElement('th', scope = "col");
+                var td2 = document.createElement('td');
+                var td3 = document.createElement('td');
+                var td4 = document.createElement('td');
+                var td5 = document.createElement('td');
+                var td6 = document.createElement('td');
+                var td7 = document.createElement('td');
+                var td8 = document.createElement('td');
+                
+                td1.innerHTML = fie.room_id;
+                td2.innerHTML = fie.oc_count;
+                td3.innerHTML = fie.common_temp;
+                td4.innerHTML = fie.common_spd;
+                td5.innerHTML = fie.achieve_count;
+                td6.innerHTML = fie.schedule_count ;
+                td7.innerHTML = fie.ticket_count;
+                td8.innerHTML = fie.total_cost.toFixed(2);
+
+                tr.append(td1);
+                tr.append(td2);
+                tr.append(td3);
+                tr.append(td4);
+                tr.append(td5);
+                tr.append(td6);
+                tr.append(td7);
+                tr.append(td8);
+                body.append(tr);
+        
+            }
+
+        },
+        error : function(e) {
+    	    alert("出错");
+    	    alert(e.responseText);
+    	}
+    })
+}
+
+function saveCode(tableid, title) {
+    var winname;
+    try {
+        if (navigator.userAgent.indexOf("MSIE") > 0)         //IE浏览器
+        {
+            var strHTML = $("#" + tableid).parent().html();
+            //alert("IE浏览器");
+            winname = window.open("ToExcel", "_blank", 'top=10000');
+ 
+            winname.document.open('text/html', 'replace');
+            winname.document.write("<style>");
+            winname.document.write("table{border:solid 1px #000;text-align:center;border-collapse:collapse; border-spacing:0;}");
+            winname.document.write("table td{border:solid 1px #000;text-align:center;}");
+            winname.document.write("table th{border:solid 1px #000;text-align:center;}");
+            winname.document.write("</style>");
+            winname.document.write(strHTML);
+            winname.document.execCommand('SaveAs', '', title + '.xls');
+            document.execCommand("ClearAuthenticationCache");
+            winname.close();
+        }
+        else if (isFirefox = navigator.userAgent.indexOf("Firefox") > 0)       //Firefox 
+        {
+            //alert("Firefox"); 
+            var str = getTblDataByFirefox(tableid, this);
+            //支持中文
+            var uri = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(str);
+            var downloadLink = document.createElement("a");
+            downloadLink.href = uri;
+            downloadLink.download = title + ".csv";
+ 
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+ 
+        }
+        else       //Google Chrome
+        {
+            //alert("Google Chrome等浏览器");
+            var str = getTblData(tableid, this);
+          
+            //支持中文
+            var uri = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(str);
+ 
+            var downloadLink = document.createElement("a");
+            downloadLink.href = uri;
+            downloadLink.download = title + ".csv";
+ 
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    } catch (e) {
+        alert(e.Message);
+        return false;
+    }
+    return false;
+}
+ 
+ 
+ 
+function getTblData(inTbl, inWindow) {
+ 
+    var rows = 0;
+    var tblDocument = document;
+ 
+    tblDocument = eval(inWindow).document;
+    var curTbl = tblDocument.getElementById(inTbl);
+    var outStr = "";
+    if (curTbl != null) {
+        for (var j = 0; j < curTbl.rows.length; j++) {
+            for (var i = 0; i < curTbl.rows[j].cells.length; i++) {
+ 
+                if (i == 0 && rows > 0) {
+                    outStr += ",";
+                    rows -= 1;
+                }
+ 
+                outStr +=curTbl.rows[j].cells[i].innerText + ",";
+                if (curTbl.rows[j].cells[i].colSpan > 1) {
+                    for (var k = 0; k < curTbl.rows[j].cells[i].colSpan - 1; k++) {
+                        outStr += ",";
+                    }
+                }
+                if (i == 0) {
+                    if (rows == 0 && curTbl.rows[j].cells[i].rowSpan > 1) {
+                        rows = curTbl.rows[j].cells[i].rowSpan - 1;
+                    }
+                }
+            }
+            outStr += "\r\n";//换行
+        }
+    }
+ 
+    else {
+        outStr = null;
+        alert(allPage.noData);
+    }
+    return outStr;
+}
+
     </script>
 	<!-- //Classie --><!-- //for toggle left push menu script -->
 

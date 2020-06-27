@@ -1,7 +1,7 @@
 '''
 @Author: your name
 @Date: 2020-06-01 16:17:42
-@LastEditTime: 2020-06-27 12:07:26
+@LastEditTime: 2020-06-27 15:17:18
 @LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: /django-air/manager/views.py
@@ -26,16 +26,15 @@ def get_rpt(request):
     if request.method == 'POST':
         report_type = request.POST.get('r_type',None)
         date_from =  request.POST.get('date_from',None)
-        date_to =  request.POST.get('date_to',None)
-        report_list = get_reports(date_from,date_to,report_type)
+        report_list = get_reports(date_from,report_type)
         ret = {
             'code': 200,
             'msg': 'ok',
             'data': report_list
         }
         
-        logger.info("changdu:",str(report_list))
         return JsonResponse(ret)
+        
 
 
     
