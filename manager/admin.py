@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Forms
+from .models import StatisicDay
 
-admin.site.register(Forms)
+admin.site.register(StatisicDay)
 
 # Register your models here.

@@ -51,7 +51,7 @@ def power_on(request):
         work_mode = int(request.POST.get('work_mode', None))
         # 确认是否登记入住了
         try:
-            Customer.objects.get(RoomId=room_id, PhoneNum=phone_num)
+            Customer.objects.get(RoomId=room_id, PhoneNum=phone_num)                
         except Exception:
             logger.info('Can\'t find customer')
             ret['code'] = 1001
@@ -60,7 +60,6 @@ def power_on(request):
 
         logger.info("room_id: " + room_id + "开机")
         RecordManager.add_power_on_record(room_id)
-
         # 新建ticket和record
         RecordManager.add_goal_temp_record(room_id, goal_temp)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
@@ -102,6 +101,7 @@ def change_fan_speed(request):
         logger.info("room_id: " + str(room_id) + " 更改风速为: " + str(sp_mode))
         RecordManager.finish_ticket(room_id, phone_num)
         RecordManager.add_ticket(room_id, phone_num, sp_mode)
+
         # 处理新请求
         machine.change_fan_speed(room_id=room_id, phone_num=phone_num, sp_mode=sp_mode)
 

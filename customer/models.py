@@ -59,6 +59,32 @@ def init_state(state: State):
     state.curr_temp = None
     state.total_cost = 0.
 
+class StatisicDay(models.Model):
+    room_id = models.CharField(max_length=20)
+    # 开关机加上
+    oc_count = models.IntegerField(default=0)
+    # 最常用温度
+    common_temp = models.IntegerField(default=26)
+    # 最常用风速
+    choice = (
+        (0, 'low'),
+        (1, 'middle'),
+        (2, 'high'),
+    )
+    common_spd = models.IntegerField(choices=choice, default=1)
+    # 达到目标温度次数
+    achieve_count = models.IntegerField(default=0)
+    # 被调度次数
+    schedule_count = models.IntegerField(default=0)
+    # 详单数量
+    ticket_count = models.IntegerField(default=0)
+    # 总费用
+    total_cost = models.FloatField(default=0)
+    # 类型
+    report_type = models.CharField(max_length=20)
+    # 时间范围
+    date = models.IntegerField()
+
 
 class Ticket(models.Model):
     """
@@ -100,30 +126,6 @@ def create_new_ticket(room_id, phone_num, sp_mode) -> Ticket:
 
 def get_all_ticket(room_id, phone_num):
     return Ticket.objects.filter(room_id=room_id,phone_num=phone_num)
-
-
-class StatisicDay(models.Model):
-    room_id = models.CharField(max_length=20)
-    date = models.DateField()
-    # 开关机加上
-    oc_count = models.IntegerField(default=0)
-    # 最常用温度
-    common_temp = models.IntegerField(default=26)
-    # 最常用风速
-    choice = (
-        (0, 'low'),
-        (1, 'middle'),
-        (2, 'high'),
-    )
-    common_spd = models.IntegerField(choices=choice, default=1)
-    # 达到目标温度次数
-    achieve_count = models.IntegerField(default=0)
-    # 被调度次数
-    schedule_count = models.IntegerField(default=0)
-    # 详单数量
-    ticket_count = models.IntegerField(default=0)
-    # 总费用
-    total_cost = models.FloatField(default=0)
 
 
 class Record(models.Model):

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2017-01-18 09:18:40
- * @LastEditTime: 2020-06-03 18:48:37
+ * @LastEditTime: 2020-06-26 23:39:28
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /tx201701313/index.html
@@ -30,6 +30,8 @@
         <!-- Bootstrap Core CSS -->
         {% load static %}
         <link href="{% static 'css/bootstrap.css' %}" rel='stylesheet' type='text/css' />
+    
+       
         
     
         <!-- Custom CSS -->
@@ -57,8 +59,9 @@
         <!-- Metis Menu -->
         
         <script src="{% static 'js/metisMenu.min.js' %}"></script>
-        <script src="{% static 'js/custom.js' %}"></script>
-        <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+        
+        <script src="{% static 'js/action.js' %}"></script>
+       
     </head>
 	<body class="cbp-spmenu-push">
         <div class="main-content">
@@ -110,12 +113,13 @@
                             </thead>
                         </table></span>
                         <span>
-                        <button type="button" class="btn btn-default"  style="float: right;">Middle</button></span>
+                        <button type="button" id='rpt_day' class="btn btn-default"  style="float: right;">查询日报表</button></span>
                     </form>
                 <div class="-simple-chart-holder" style="margin:auto" >
                     <table class="table table-hover" style="margin:auto">
                       <thead>
                         <tr>
+                            <th scope="col">#</th>
                             <th scope="col">房间号</th>
                             <th scope="col">使用次数</th>
                             <th scope="col">最常用目标温度</th>
@@ -127,12 +131,17 @@
                         </tr>
                       </thead>
                       <tbody>
-                      {%for item in cust_list%}
+                      {%for item in report_list%}
                             <tr>
-                                <td width="120px">{{forloop.counter}}</td>
-                                <td width="150px"><a href="" style="color: #0f0f0f">{{ item.RoomId }}</a></td>
-                                <td width="200px">{{ item.Name }}</td>
-                                <td width="200px"><a href="/reception/checkout?room_id={{ item.RoomId }}">checkout</a></td>
+                                <td width="60px">{{forloop.counter}}</td>
+                                <td width="60px">{{ item.room_id }}</td>
+                                <td width="60px">{{ item.oc_count }}</td>
+                                <td width="60px">{{ item.common_temp }}</td>
+                                <td width="60px">{{ item.choice }}</td>
+                                <td width="60px">{{ item.achieve_count }}</td>
+                                <td width="60px">{{ item.schedule_count }}</td>
+                                <td width="60px">{{ item.ticket_count }}</td>
+                                <td width="60px">{{ item.total_cost }}</td>  
                             </tr>
                         {%endfor%}
                     </table>
@@ -144,7 +153,8 @@
 
 
 		<script src="/static/js/jquery-1.11.3.min.js"></script>
-		<script src="/static/js/foundation-datepicker.js"></script>
+        <script src="/static/js/foundation-datepicker.js"></script>
+        <script src="/static/js/action.js"></script>
 		<script src="/static/js/locales/foundation-datepicker.zh-CN.js"></script>		
 		<script>
 
