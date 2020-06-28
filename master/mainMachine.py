@@ -14,7 +14,6 @@ from django.core import serializers
 logger = logging.getLogger('collect')
 CAL_INTERVAL = config.cal_interval
 WAIT_INTERVAL = config.wait_interval
-RATE_INTERVAL = config.rate_interval
 TEMP_RATE = config.temp_rate
 
 
@@ -27,7 +26,8 @@ class MainMachine:
         self.lock = threading.RLock()
         # 默认参数
         # self.off_rate = TEMP_RATE  # 停止送风后室温变化率
-        self.power_on = True
+        self.power_on = False
+        self.init = False
         self.default_work_mode = 0
         self.default_sp_mode = 1
         self.default_goal_temp = 25
@@ -50,13 +50,14 @@ class MainMachine:
     def is_on(self):
         self.lock.acquire()
         try:
-            return self.power_on
+            return ((self.power_on is True) and (self.init is True))
         finally:
             self.lock.release()
 
     def init_default(self, is_on):
         self.lock.acquire()
         try:
+            logger.info("main power")
             self.power_on = is_on
         finally:
             self.lock.release()
@@ -73,8 +74,10 @@ class MainMachine:
             self.hot_sup = hot_sup
             self.default_goal_temp = goal_temp
             for i in range(3):
-                self.fee_rates[i] = fee*self.fee_rates[i]
+                self.fee_rates[i] = fee * self.fee_rates[i]
             self.max_run = max_run
+            logger.info("main init")
+            self.init = True
         finally:
             self.lock.release()
 
@@ -192,20 +195,6 @@ class MainMachine:
         if self.service_queue[0].sp_mode <= s.sp_mode:
             self.move_to_wait(self.service_queue[0].room_id)
             self.move_to_service(room_id)
-
-    # def change_rate(self, room_id):
-    #     machine.lock.acquire()
-    #     try:
-    #         for item in self.service_queue:
-    #             if item.room_id == room_id:
-    #                 if item.sp_mode == 0:
-    #                     item.temp_rate -= TEMP_RATE * 0.2
-    #                 elif item.sp_mode == 2:
-    #                     item.temp_rate += TEMP_RATE * 0.2
-    #                 logger.info("room_id: " + str(room_id) + " 温度变化率: " + str(item.temp_rate))
-    #                 return
-    #     finally:
-    #         self.lock.release()
 
     def get_queue_pos(self, room_id):
         for item in self.service_queue:

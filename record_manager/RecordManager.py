@@ -1,11 +1,3 @@
-'''
-@Author: your name
-@Date: 2020-06-25 23:03:29
-@LastEditTime: 2020-06-27 09:54:03
-@LastEditors: Please set LastEditors
-@Description: In User Settings Edit
-@FilePath: /django-air/record_manager/RecordManager.py
-'''
 from customer.models import Ticket, Record, get_current_record, get_current_ticket, create_new_ticket, get_all_ticket
 import datetime
 

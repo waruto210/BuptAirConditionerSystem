@@ -2,8 +2,8 @@ version: '3'
 services:
   app:
     build: .
-    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["python", "manage.py", "runserver", "0000:8000"]
     volumes:
-      - ~/vscode/django/django_air:/project
+      - /Users/wmc/gitrepos/django-air:/project
     ports:
       - "8000:8000"

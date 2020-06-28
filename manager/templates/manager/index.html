@@ -209,7 +209,7 @@ $(document).ready(function() {
 function postgetrpt(date_from,r_type){
     console.log("查询报表");
     $.ajax({
-        url: 'get_rpt',
+        url: 'manager/get_rpt',
         type: 'POST',
         dataType: 'JSON',
         data: {
