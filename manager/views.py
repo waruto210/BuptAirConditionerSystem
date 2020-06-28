@@ -1,7 +1,7 @@
 '''
 @Author: your name
 @Date: 2020-06-01 16:17:42
-@LastEditTime: 2020-06-27 15:17:18
+@LastEditTime: 2020-06-28 12:07:53
 @LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: /django-air/manager/views.py
@@ -32,12 +32,9 @@ def get_rpt(request):
             'msg': 'ok',
             'data': report_list
         }
-        
         return JsonResponse(ret)
         
-
-
-    
+  
 def index(request):
      return render(request, "manager/index.html")
 

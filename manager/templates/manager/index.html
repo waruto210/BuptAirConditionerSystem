@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2017-01-18 09:18:40
- * @LastEditTime: 2020-06-27 16:02:24
+ * @LastEditTime: 2020-06-28 11:49:33
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /tx201701313/index.html
@@ -29,15 +29,7 @@
     
         <!-- Custom CSS -->
         <link href="{% static 'css/style.css' %}" rel='stylesheet' type='text/css' />
-        
-        
-         <!-- side nav css file -->
-        
-         <link href="{% static 'css/SidebarNav.min.css' %}" media='all' rel='stylesheet' type='text/css'/>
-         <!-- side nav css file -->
-        
-         <!-- js-->
-        
+        <link href="{% static 'css/SidebarNav.min.css' %}" media='all' rel='stylesheet' type='text/css'/>
         <script src="{% static 'js/jquery-1.11.1.min.js' %}"></script>
         <script src="{% static 'js/modernizr.custom.js' %}"></script>
  
@@ -45,9 +37,8 @@
         
         <script src="{% static 'js/metisMenu.min.js' %}"></script>
         <link href="/static/css/foundation-datepicker.css" rel="stylesheet" type="text/css">
-        
-       
     </head>
+
 	<body class="cbp-spmenu-push">
         <div class="main-content">
             <div class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
@@ -55,7 +46,7 @@
                 <aside class="sidebar-left">
               <nav class="navbar navbar-inverse">
                   <div class="navbar-header">
-                    <span class="sr-only">Toggle navigation</span>
+                 
                     </button>
                     <h1><a class="navbar-brand" href="#"><span class="fa fa-area-chart"></span>空调管理系统<span class="dashboard_text">Designed by 318D</span></a></h1>
                   </div>
@@ -100,7 +91,6 @@
                         </form>
                         <br></br>
                         </span>
-                    
                         <button type="button" id='rpt_day' class="btn btn-default"  style="float: right;">查询日报表</button></span>
                         <button type="button" id='rpt_week' class="btn btn-default"  style="float: right;">查询周报表</button></span>
                         <button type="button" id='rpt_month' class="btn btn-default"  style="float: right;">查询月报表</button></span>
@@ -125,20 +115,13 @@
                             <th scope="col">费用</th>
                         </tr>
                       </thead>
-                      <tbody>
-                          
+                      <tbody>        
                       </tbody>
-        
-                    </table>
-
-                    
-                   
+                    </table> 
                 </div>
             </div>
                 
             </div>
-
-
 		<script src="/static/js/jquery-1.11.3.min.js"></script>
         <script src="/static/js/foundation-datepicker.js"></script>
         
@@ -156,28 +139,28 @@
 		
         </script>
 
-    <script src="{% static 'js/classie.js' %}"></script>
-    <script>
-        var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
-            showLeftPush = document.getElementById( 'showLeftPush' ),
-            body = document.body;
+        <script src="{% static 'js/classie.js' %}"></script>
+        <script>
+            var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
+                showLeftPush = document.getElementById( 'showLeftPush' ),
+                body = document.body;
 
-        showLeftPush.onclick = function() {
-            classie.toggle( this, 'active' );
-            classie.toggle( body, 'cbp-spmenu-push-toright' );
-            classie.toggle( menuLeft, 'cbp-spmenu-open' );
-            disableOther( 'showLeftPush' );
-        };
+            showLeftPush.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( body, 'cbp-spmenu-push-toright' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                disableOther( 'showLeftPush' );
+            };
 
-        function disableOther( button ) {
-            if( button !== 'showLeftPush' ) {
-                classie.toggle( showLeftPush, 'disabled' );
+            function disableOther( button ) {
+                if( button !== 'showLeftPush' ) {
+                    classie.toggle( showLeftPush, 'disabled' );
+                }
             }
-        }
-    </script>
+        </script>
     <script>
 
-$(document).ready(function() {
+    $(document).ready(function() {
     $rpt_day_btn = $("#rpt_day");
     $rpt_week_btn = $("#rpt_week");
     $rpt_month_btn = $("#rpt_month");
@@ -206,7 +189,7 @@ $(document).ready(function() {
 })
 
 
-function postgetrpt(date_from,r_type){
+    function postgetrpt(date_from,r_type){
     console.log("查询报表");
     $.ajax({
         url: 'manager/get_rpt',
@@ -267,7 +250,7 @@ function postgetrpt(date_from,r_type){
     })
 }
 
-function saveCode(tableid, title) {
+    function saveCode(tableid, title) {
     var winname;
     try {
         if (navigator.userAgent.indexOf("MSIE") > 0)         //IE浏览器
@@ -327,7 +310,7 @@ function saveCode(tableid, title) {
  
  
  
-function getTblData(inTbl, inWindow) {
+    function getTblData(inTbl, inWindow) {
  
     var rows = 0;
     var tblDocument = document;
@@ -368,15 +351,8 @@ function getTblData(inTbl, inWindow) {
 }
 
     </script>
-	<!-- //Classie --><!-- //for toggle left push menu script -->
-
-	<!--scrolling js-->
 	<script src="{% static 'js/jquery.nicescroll.js' %}"></script>
 	<script src="{% static 'js/scripts.js' %}"></script>
-	<!--//scrolling js-->
-
-	<!-- Bootstrap Core JavaScript -->
-   <script src="{% static 'js/bootstrap.js' %}"> </script>
-	<!-- //Bootstrap Core JavaScript -->
+    <script src="{% static 'js/bootstrap.js' %}"> </script>
 	</body>
 </html>

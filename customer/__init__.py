@@ -1,1 +1,1 @@
-default_app_config = 'customer.apps.CustomerConfig'
+#default_app_config = 'customer.apps.CustomerConfig'

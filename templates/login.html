@@ -1,3 +1,11 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-06-01 13:38:38
+ * @LastEditTime: 2020-06-28 11:44:34
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /django-air/templates/login.html
+--> 
 {% extends 'base.html' %}
 
 {% block title %}
@@ -19,7 +27,7 @@
                 <div class="login-body">
                     <form action="/login" method="post">
                         {% csrf_token %}
-                        <input type="email" class="user" name="email" placeholder="Enter Your Emial" required="">
+                        <input type="email" class="user" name="email" placeholder="Enter Your Email" required="">
                         <input type="password" name="password" class="lock" placeholder="Password" required="">
                         <input type="submit" name="Sign In" value="Sign In">
                     </form>

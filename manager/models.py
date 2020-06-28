@@ -12,6 +12,7 @@ logger = logging.getLogger('collect')
 
 def add_reports(rooms_info, report_type, date_to, date_from):
     for room in rooms_info:
+
         room_id = room
         report_type = rooms_info[room]['report_type']
         date = rooms_info[room]['date']
@@ -27,10 +28,10 @@ def add_reports(rooms_info, report_type, date_to, date_from):
                                        date=date, oc_count=oc_count, common_temp=common_temp, common_spd=choice,
                                        achieve_count=achieve_count, ticket_count=ticket_count, total_cost=total_cost)
     rooms = list(StatisicDay.objects.filter(date=date_from, report_type=report_type))
+    logger.info("room num: " + str(len(rooms_info)))
     if datetime.now().__lt__(date_to):
         StatisicDay.objects.filter(date=date_from, report_type=report_type).delete()
-        r.save()
-    # rooms = list(StatisicDay.objects.filter(date=date_from, report_type=report_type))
+    logger.info("room num: " + str(len(rooms_info)))
     return rooms
 
 
@@ -38,11 +39,11 @@ def add_day_report(date, report_type):
     if report_type == 'd':
         date_from, date_to = date, date + timedelta(days=1)
     elif report_type == 'w':
-        date_from, date_to = date, date + timedelta(days=8)
+        date_from, date_to = date, date + timedelta(days=7)
     elif report_type == 'm':
-        date_from, date_to = date, date + timedelta(days=31)
+        date_from, date_to = date, date + timedelta(days=30)
     elif report_type == 'y':
-        date_from, date_to = date, date + timedelta(days=366)
+        date_from, date_to = date, date + timedelta(days=365)
     logger.info("date_from: " + str(date_from))
     logger.info("date_to: " + str(date_to))
 
@@ -52,6 +53,7 @@ def add_day_report(date, report_type):
     for i in r1:
         if i.room_id not in room_list:
             room_list.append(i.room_id)
+    
     rooms = list(StatisicDay.objects.filter(date=date_from, report_type=report_type))
     if rooms == [] or datetime.now().__lt__(date_to):
         for room in room_list:
@@ -66,7 +68,6 @@ def add_day_report(date, report_type):
                 if i.record_type == 'goal_temp':
                     if i.duration:
                         r_info['temp_dict'][i.goal_temp] += i.duration  # 常用目标温度
-                        # r_info['achieve_count'] += 1 #达到目标温度次数
                 if i.record_type == 'reach_goal':
                     r_info['achieve_count'] += 1
             for i in r4:
@@ -75,7 +76,8 @@ def add_day_report(date, report_type):
                 r_info['total_cost'] += i.cost  # 总费用
                 r_info['schedule_count'] += i.schedule_count  # 成功调度次数
             rooms_info[room] = r_info
-    rooms = add_reports(rooms_info, report_type, date_to, date_from)
+       
+        rooms = add_reports(rooms_info, report_type, date_to, date_from)
     return rooms
 
 
