@@ -47,11 +47,14 @@ def add_day_report(date,report_type):
     logger.info("date_to: " +str(date_to))
 
     r1 = list(Record.objects.filter(at_time__range=(date_from,date_to)))
+    
+
     room_list = []
     rooms_info = {}
     for i in r1:
         if i.room_id not in room_list:
             room_list.append(i.room_id)
+    logger.info("tiaoshu: " +str(len(r1)))
     rooms = list(StatisicDay.objects.filter(date=date_from,report_type=report_type))
     if rooms == [] or datetime.now().__lt__(date_to):
         for room in room_list:
